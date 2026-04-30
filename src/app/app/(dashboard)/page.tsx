@@ -136,7 +136,8 @@ export default async function AppDashboard() {
   }).slice(0, 6);
 
   // Link público
-  const publicLink = `/agenda/${company.slug}`;
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const publicLink = `${baseUrl}/${company.slug}`;
 
   return (
     <div>

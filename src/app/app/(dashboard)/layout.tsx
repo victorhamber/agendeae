@@ -2,6 +2,8 @@ import styles from '../app.module.css';
 import { getMockAuth } from '@/app/actions/auth';
 import AppSidebar from './AppSidebar';
 
+export const dynamic = 'force-dynamic';
+
 export default async function AppLayout({
   children,
 }: {

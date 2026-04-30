@@ -3,6 +3,8 @@ import styles from '../super-admin.module.css';
 
 import SuperAdminSidebar from './SuperAdminSidebar';
 
+export const dynamic = 'force-dynamic';
+
 export default function SuperAdminLayout({
   children,
 }: {

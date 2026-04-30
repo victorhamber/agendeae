@@ -4,9 +4,9 @@ import { loginSuperAdmin } from '@/app/actions/auth';
 
 export default function SuperAdminLogin() {
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', backgroundColor: '#09090b' }}>
-      <div className="glass" style={{ padding: '2rem', borderRadius: 'var(--radius)', width: '100%', maxWidth: '400px', textAlign: 'center', border: '1px solid #27272a' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#fff' }}>Super Admin</h1>
+    <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', backgroundColor: '#050505' }}>
+      <div style={{ backgroundColor: '#111', padding: '2.5rem', borderRadius: '1rem', width: '100%', maxWidth: '400px', textAlign: 'center', border: '1px solid #27272a', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}>
+        <h1 style={{ fontSize: '1.75rem', fontWeight: '800', marginBottom: '0.5rem', color: '#fff' }}>Super Admin</h1>
         <p style={{ color: '#a1a1aa', marginBottom: '2rem', fontSize: '0.875rem' }}>Acesso exclusivo à gestão da plataforma.</p>
         
         <form action={loginSuperAdmin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

@@ -1,0 +1,35 @@
+import styles from '../../app/app.module.css';
+
+import { loginSuperAdmin } from '@/app/actions/auth';
+
+export default function SuperAdminLogin() {
+  return (
+    <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', backgroundColor: '#09090b' }}>
+      <div className="glass" style={{ padding: '2rem', borderRadius: 'var(--radius)', width: '100%', maxWidth: '400px', textAlign: 'center', border: '1px solid #27272a' }}>
+        <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '0.5rem', color: '#fff' }}>Super Admin</h1>
+        <p style={{ color: '#a1a1aa', marginBottom: '2rem', fontSize: '0.875rem' }}>Acesso exclusivo à gestão da plataforma.</p>
+        
+        <form action={loginSuperAdmin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div>
+            <input type="email" placeholder="E-mail master" className="input" style={{ backgroundColor: '#18181b', color: '#fff', borderColor: '#27272a' }} required />
+          </div>
+          <div>
+            <input type="password" placeholder="Senha mestre" className="input" style={{ backgroundColor: '#18181b', color: '#fff', borderColor: '#27272a' }} required />
+            <div style={{ textAlign: 'right', marginTop: '0.5rem' }}>
+              <a href="#" style={{ fontSize: '0.75rem', color: '#6366f1', textDecoration: 'none', fontWeight: 500 }}>
+                Esqueci minha senha
+              </a>
+            </div>
+          </div>
+          <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: '0.5rem', backgroundColor: '#6366f1' }}>
+            Acessar Controle
+          </button>
+        </form>
+        
+        <div style={{ marginTop: '1.5rem', fontSize: '0.875rem', color: '#a1a1aa' }}>
+          <p>Acesso restrito. Monitore licenças e faturamento.</p>
+        </div>
+      </div>
+    </div>
+  );
+}

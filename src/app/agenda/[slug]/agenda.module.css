@@ -1,0 +1,257 @@
+/* Reset for this specific page to ensure dark mode */
+.container {
+  width: 100%;
+  max-width: 500px; /* Levemente mais largo para ficar confortável */
+  margin: 0 auto; /* Center horizontally */
+  min-height: 100vh;
+  background-color: #050505; /* Deep black background */
+  color: #FFFFFF;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.cover {
+  width: 100%;
+  aspect-ratio: 4 / 3; /* Imagem retangular (mais esticada horizontalmente) para o menu subir mais */
+  background-size: cover;
+  background-position: center;
+  position: relative; /* Removido absolute para participar do fluxo */
+  z-index: 0;
+}
+
+/* Add a dark gradient overlay to make text pop if needed, or just let it be */
+.coverOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.1), #050505);
+}
+
+.bottomSheet {
+  position: relative;
+  z-index: 1;
+  margin-top: -60px; /* Sobe e sobrepõe a capa perfeitamente */
+  background-color: #0F0F0F;
+  min-height: 65vh;
+  border-top-left-radius: 32px;
+  border-top-right-radius: 32px;
+  padding: 2rem 1.5rem 8rem 1.5rem; /* Extra padding at bottom for sticky button */
+  box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+}
+
+.headerInfo {
+  margin-bottom: 2rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background-color: var(--company-primary, #FFD700);
+  color: #000;
+  font-weight: 800;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.companyName {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.companyDescription {
+  color: #A1A1AA;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+.sectionTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #71717A;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Service Toggles */
+.serviceItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 0;
+  border-bottom: 1px solid #27272A;
+}
+
+.serviceInfo h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem 0;
+}
+
+.serviceInfo p {
+  font-size: 0.75rem;
+  color: #A1A1AA;
+  margin: 0;
+}
+
+.toggleSwitch {
+  position: relative;
+  width: 48px;
+  height: 28px;
+  background-color: #27272A;
+  border-radius: 99px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.toggleSwitch.active {
+  background-color: var(--company-primary, #FFD700);
+}
+
+.toggleKnob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 24px;
+  height: 24px;
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.toggleSwitch.active .toggleKnob {
+  transform: translateX(20px);
+}
+
+/* Time Grid */
+.timeGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.timeButton {
+  background-color: #1A1A1A;
+  color: #FFFFFF;
+  border: 1px solid #27272A;
+  padding: 1rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.timeButton.selected {
+  background-color: var(--company-primary, #FFD700);
+  color: #000000;
+  border-color: var(--company-primary, #FFD700);
+}
+
+/* Date Selector */
+.dateScroll {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  scrollbar-width: none; /* Firefox */
+}
+.dateScroll::-webkit-scrollbar {
+  display: none; /* Chrome */
+}
+
+.dateCard {
+  min-width: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.75rem 0.5rem;
+  border-radius: 12px;
+  background-color: #1A1A1A;
+  color: #A1A1AA;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.dateCard.selected {
+  background-color: var(--company-primary, #FFD700);
+  color: #000000;
+}
+
+.dateCard .dayNum {
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.dateCard .dayName {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-top: 0.25rem;
+}
+
+/* Sticky Bottom Button */
+.stickyFooter {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 1.5rem;
+  background: linear-gradient(to top, #050505 80%, transparent); /* matches container bg */
+  z-index: 10;
+  margin-top: auto;
+}
+
+.bookNowBtn {
+  width: 100%;
+  background-color: var(--company-primary, #FFD700);
+  color: #000000;
+  font-weight: 800;
+  padding: 1.25rem;
+  border-radius: 99px;
+  border: none;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.bookNowBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Forms */
+.darkInput {
+  background-color: #1A1A1A;
+  border: 1px solid #27272A;
+  color: #FFF;
+  width: 100%;
+  padding: 1rem;
+  border-radius: 12px;
+  outline: none;
+}
+.darkInput:focus {
+  border-color: var(--company-primary, #FFD700);
+}
+
+.profCard {
+  background-color: #1A1A1A;
+  border-radius: 16px;
+  padding: 1.5rem;
+  text-align: center;
+  border: 2px solid transparent;
+}
+.profCard.selected {
+  border-color: var(--company-primary, #FFD700);
+}

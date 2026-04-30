@@ -1,0 +1,213 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  passwordHash  String
+  role          String    // SUPER_ADMIN, COMPANY_ADMIN
+  status        String    @default("ACTIVE")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  professional  Professional?
+}
+
+model Company {
+  id              String    @id @default(cuid())
+  ownerId         String
+  name            String
+  slug            String    @unique
+  segment         String?
+  logoUrl         String?
+  coverUrl        String?
+  primaryColor    String?
+  secondaryColor  String?
+  whatsapp        String?
+  email           String?
+  instagram       String?
+  address         String?
+  description     String?
+  status          String    @default("ACTIVE") // ACTIVE, TRIAL, PAST_DUE, BLOCKED, CANCELLED, SUSPENDED
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  licenses        License[]
+  services        Service[]
+  professionals   Professional[]
+  customers       Customer[]
+  appointments    Appointment[]
+}
+
+model Plan {
+  id                      String    @id @default(cuid())
+  name                    String
+  description             String?
+  priceMonthly            Float
+  priceYearly             Float
+  maxProfessionals        Int
+  maxUnits                Int
+  allowReports            Boolean   @default(false)
+  allowWhatsappReminders  Boolean   @default(false)
+  allowCustomDomain       Boolean   @default(false)
+  allowMultipleUsers      Boolean   @default(false)
+  status                  String    @default("ACTIVE")
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  licenses                License[]
+}
+
+model License {
+  id                       String    @id @default(cuid())
+  companyId                String
+  planId                   String
+  status                   String    @default("ACTIVE") // ACTIVE, TRIAL, EXPIRED, CANCELLED
+  startsAt                 DateTime
+  expiresAt                DateTime?
+  trialEndsAt              DateTime?
+  paymentProvider          String?
+  externalCustomerId       String?
+  externalSubscriptionId   String?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+
+  company                  Company   @relation(fields: [companyId], references: [id])
+  plan                     Plan      @relation(fields: [planId], references: [id])
+}
+
+model Service {
+  id                  String    @id @default(cuid())
+  companyId           String
+  name                String
+  description         String?
+  category            String?
+  price               Float
+  durationMinutes     Int
+  bufferAfterMinutes  Int       @default(0)
+  imageUrl            String?
+  status              String    @default("ACTIVE")
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  company             Company   @relation(fields: [companyId], references: [id])
+  professionals       ProfessionalService[]
+  appointments        Appointment[]
+}
+
+model Professional {
+  id                  String    @id @default(cuid())
+  companyId           String
+  name                String
+  photoUrl            String?
+  specialty           String?
+  whatsapp            String?
+  email               String?
+  description         String?
+  ratingAverage       Float?    @default(5.0)
+  ratingCount         Int       @default(0)
+  status              String    @default("ACTIVE")
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  
+  userId              String?   @unique
+  user                User?     @relation(fields: [userId], references: [id])
+
+  company             Company   @relation(fields: [companyId], references: [id])
+  services            ProfessionalService[]
+  availabilities      Availability[]
+  blockedTimes        BlockedTime[]
+  appointments        Appointment[]
+}
+
+model ProfessionalService {
+  id              String       @id @default(cuid())
+  companyId       String
+  professionalId  String
+  serviceId       String
+  createdAt       DateTime     @default(now())
+
+  professional    Professional @relation(fields: [professionalId], references: [id])
+  service         Service      @relation(fields: [serviceId], references: [id])
+
+  @@unique([professionalId, serviceId])
+}
+
+model Availability {
+  id              String       @id @default(cuid())
+  companyId       String
+  professionalId  String
+  dayOfWeek       Int          // 0 = Sunday, 1 = Monday...
+  startTime       String       // e.g. "09:00"
+  endTime         String       // e.g. "18:00"
+  breakStartTime  String?      // e.g. "12:00"
+  breakEndTime    String?      // e.g. "13:00"
+  status          String       @default("ACTIVE")
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  professional    Professional @relation(fields: [professionalId], references: [id])
+}
+
+model BlockedTime {
+  id              String       @id @default(cuid())
+  companyId       String
+  professionalId  String
+  date            DateTime     // e.g. 2023-10-25
+  startTime       String       // e.g. "14:00"
+  endTime         String       // e.g. "16:00"
+  reason          String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  professional    Professional @relation(fields: [professionalId], references: [id])
+}
+
+model Customer {
+  id              String       @id @default(cuid())
+  companyId       String
+  name            String
+  whatsapp        String?
+  email           String?
+  birthDate       DateTime?
+  notes           String?
+  tags            String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  company         Company      @relation(fields: [companyId], references: [id])
+  appointments    Appointment[]
+}
+
+model Appointment {
+  id                  String       @id @default(cuid())
+  companyId           String
+  customerId          String
+  professionalId      String
+  serviceId           String
+  serviceNames        String?      // e.g. "Corte de Cabelo + Barba" (combo display)
+  totalPrice          Float?       // Soma dos preços dos serviços selecionados
+  date                DateTime
+  startTime           String       // e.g. "14:00"
+  endTime             String       // e.g. "14:30"
+  status              String       @default("PENDING") // PENDING, CONFIRMED, COMPLETED, CANCELLED, NO_SHOW
+  source              String       @default("ONLINE")  // ONLINE, MANUAL
+  notes               String?
+  rating              Int?
+  reviewText          String?
+  cancellationReason  String?
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+
+  company             Company      @relation(fields: [companyId], references: [id])
+  customer            Customer     @relation(fields: [customerId], references: [id])
+  professional        Professional @relation(fields: [professionalId], references: [id])
+  service             Service      @relation(fields: [serviceId], references: [id])
+}

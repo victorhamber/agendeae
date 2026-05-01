@@ -1,10 +1,9 @@
-import { PrismaClient } from '@prisma/client';
 import styles from '../../app.module.css';
 import { Suspense } from 'react';
 import AgendaFilter from '../agenda/AgendaFilter';
 import DeleteAppointmentButton from './DeleteAppointmentButton';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { requireCompanySession } from '@/lib/auth/server';
 
 function getDateRange(filtro: string, de?: string, ate?: string) {
   const today = new Date();
@@ -56,7 +55,8 @@ function getDateRange(filtro: string, de?: string, ate?: string) {
 
 export default async function RelatoriosPage({ searchParams }: { searchParams: Promise<{ filtro?: string; de?: string; ate?: string }> }) {
   const params = await searchParams;
-  const company = await prisma.company.findFirst();
+  const session = await requireCompanySession();
+  const company = await prisma.company.findUnique({ where: { id: session.companyId } });
   
   if (!company) {
     return <div>Empresa não encontrada.</div>;

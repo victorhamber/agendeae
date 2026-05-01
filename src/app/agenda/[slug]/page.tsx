@@ -1,10 +1,8 @@
-import { PrismaClient } from '@prisma/client';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import BookingFlow from './BookingFlow';
 import styles from './agenda.module.css';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -86,7 +84,6 @@ export default async function AgendaPage({ params }: { params: Promise<{ slug: s
             services={company.services} 
             professionals={company.professionals} 
             companyId={company.id}
-            companyName={company.name}
             companyWhatsapp={company.whatsapp || ''}
           />
 

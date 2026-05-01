@@ -1,16 +1,14 @@
-import { PrismaClient } from '@prisma/client';
-import { getMockAuth } from '@/app/actions/auth';
 import styles from '../../app.module.css';
 import PerfilForm from './PerfilForm';
 import AvailabilityForm from '../configuracoes/AvailabilityForm';
 import BlockedTimesForm from '../profissionais/[id]/BlockedTimesForm';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { requireCompanySession } from '@/lib/auth/server';
 
 export default async function PerfilPage() {
-  const { role, professionalId } = await getMockAuth();
+  const session = await requireCompanySession();
 
-  if (role !== 'PROFESSIONAL' || !professionalId) {
+  if (session.role !== 'PROFESSIONAL' || !session.professionalId) {
     return (
       <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted)' }}>
         <h2>Acesso Negado</h2>
@@ -20,11 +18,14 @@ export default async function PerfilPage() {
   }
 
   const professional = await prisma.professional.findUnique({
-    where: { id: professionalId }
+    where: { id: session.professionalId }
   });
 
   if (!professional) {
     return <div>Profissional não encontrado.</div>;
+  }
+  if (professional.companyId !== session.companyId) {
+    return <div>Acesso negado.</div>;
   }
 
   const availabilities = await prisma.availability.findMany({
@@ -54,14 +55,12 @@ export default async function PerfilPage() {
           Configure os dias e horários em que você atende. Se o dia for desmarcado, ele aparecerá como indisponível na agenda pública.
         </p>
         <AvailabilityForm 
-          companyId={professional.companyId} 
           professionalId={professional.id} 
           initialData={availabilities} 
         />
       </div>
 
       <BlockedTimesForm 
-        companyId={professional.companyId} 
         professionalId={professional.id} 
         blockedTimes={blockedTimes} 
       />

@@ -1,19 +1,17 @@
-import { PrismaClient } from '@prisma/client';
-import { getMockAuth } from '@/app/actions/auth';
+import { prisma } from '@/lib/prisma';
+import { requireCompanySession } from '@/lib/auth/server';
 import { redirect } from 'next/navigation';
 import styles from '../app.module.css';
 import Link from 'next/link';
 
-const prisma = new PrismaClient();
-
 export default async function AppDashboard() {
-  const { role } = await getMockAuth();
+  const session = await requireCompanySession();
   
-  if (role === 'PROFESSIONAL') {
+  if (session.role === 'PROFESSIONAL') {
     redirect('/app/agenda');
   }
 
-  const company = await prisma.company.findFirst();
+  const company = await prisma.company.findUnique({ where: { id: session.companyId } });
   if (!company) return <div>Empresa não encontrada.</div>;
 
   const today = new Date();

@@ -1,8 +1,7 @@
 'use server';
 
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { requireCompanySession } from '@/lib/auth/server';
 
 export type AvailabilityData = {
   id?: string;
@@ -14,7 +13,10 @@ export type AvailabilityData = {
   isActive: boolean;
 };
 
-export async function saveAvailability(companyId: string, professionalId: string, availabilities: AvailabilityData[]) {
+export async function saveAvailability(professionalId: string, availabilities: AvailabilityData[]) {
+  const session = await requireCompanySession();
+  const prof = await prisma.professional.findUnique({ where: { id: professionalId }, select: { companyId: true } });
+  if (!prof || prof.companyId !== session.companyId) throw new Error('Sem permissão');
   // Use a transaction to update all days
   await prisma.$transaction(
     availabilities.map((av) => {
@@ -32,7 +34,7 @@ export async function saveAvailability(companyId: string, professionalId: string
       } else {
         return prisma.availability.create({
           data: {
-            companyId,
+            companyId: session.companyId,
             professionalId,
             dayOfWeek: av.dayOfWeek,
             startTime: av.startTime,

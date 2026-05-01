@@ -1,11 +1,11 @@
-import { PrismaClient } from '@prisma/client';
 import styles from '../../app.module.css';
 import CompanyForm from './CompanyForm';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { requireCompanySession } from '@/lib/auth/server';
 
 export default async function ConfiguracoesPage() {
-  const company = await prisma.company.findFirst();
+  const session = await requireCompanySession();
+  const company = await prisma.company.findUnique({ where: { id: session.companyId } });
   if (!company) return <div>Empresa não encontrada</div>;
 
   return (

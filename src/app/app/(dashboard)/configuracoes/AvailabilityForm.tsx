@@ -8,13 +8,19 @@ const DAYS_OF_WEEK = [
 ];
 
 export default function AvailabilityForm({ 
-  companyId, 
   professionalId, 
   initialData 
 }: { 
-  companyId: string, 
   professionalId: string, 
-  initialData: any[] 
+  initialData: Array<{
+    id: string;
+    dayOfWeek: number;
+    startTime: string;
+    endTime: string;
+    breakStartTime: string | null;
+    breakEndTime: string | null;
+    status: string;
+  }>
 }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -34,7 +40,7 @@ export default function AvailabilityForm({
     })
   );
 
-  const handleUpdate = (index: number, field: keyof AvailabilityData, value: any) => {
+  const handleUpdate = (index: number, field: keyof AvailabilityData, value: string | boolean) => {
     const newData = [...formData];
     newData[index] = { ...newData[index], [field]: value };
     setFormData(newData);
@@ -44,7 +50,7 @@ export default function AvailabilityForm({
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await saveAvailability(companyId, professionalId, formData);
+      await saveAvailability(professionalId, formData);
       alert('Configurações salvas com sucesso!');
     } catch (error) {
       console.error(error);
@@ -73,6 +79,7 @@ export default function AvailabilityForm({
                   type="checkbox" 
                   checked={day.isActive} 
                   onChange={(e) => handleUpdate(index, 'isActive', e.target.checked)} 
+                  aria-label={`Ativar dia ${DAYS_OF_WEEK[index]}`}
                 />
                 <span>{DAYS_OF_WEEK[index]}</span>
               </div>
@@ -83,6 +90,7 @@ export default function AvailabilityForm({
                 value={day.startTime} 
                 onChange={(e) => handleUpdate(index, 'startTime', e.target.value)} 
                 disabled={!day.isActive}
+                aria-label={`Horário de abertura (${DAYS_OF_WEEK[index]})`}
               />
               
               <input 
@@ -91,6 +99,7 @@ export default function AvailabilityForm({
                 value={day.endTime} 
                 onChange={(e) => handleUpdate(index, 'endTime', e.target.value)} 
                 disabled={!day.isActive}
+                aria-label={`Horário de fechamento (${DAYS_OF_WEEK[index]})`}
               />
 
               <input 
@@ -99,6 +108,7 @@ export default function AvailabilityForm({
                 value={day.breakStartTime || ''} 
                 onChange={(e) => handleUpdate(index, 'breakStartTime', e.target.value)} 
                 disabled={!day.isActive}
+                aria-label={`Início da pausa (${DAYS_OF_WEEK[index]})`}
               />
 
               <input 
@@ -107,6 +117,7 @@ export default function AvailabilityForm({
                 value={day.breakEndTime || ''} 
                 onChange={(e) => handleUpdate(index, 'breakEndTime', e.target.value)} 
                 disabled={!day.isActive}
+                aria-label={`Fim da pausa (${DAYS_OF_WEEK[index]})`}
               />
             </div>
           ))}

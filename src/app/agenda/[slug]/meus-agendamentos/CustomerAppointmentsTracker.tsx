@@ -2,11 +2,17 @@
 
 import { useState } from 'react';
 import { findCustomerAppointments } from '../../../actions/appointments';
+import type { Appointment, Professional, Service } from '@prisma/client';
+
+type AppointmentRow = Appointment & {
+  service: Service | null;
+  professional: Professional | null;
+};
 
 export default function CustomerAppointmentsTracker({ companySlug }: { companySlug: string }) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [appointments, setAppointments] = useState<any[] | null>(null);
+  const [appointments, setAppointments] = useState<AppointmentRow[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -20,8 +26,9 @@ export default function CustomerAppointmentsTracker({ companySlug }: { companySl
     try {
       const results = await findCustomerAppointments(companySlug, phone);
       setAppointments(results);
-    } catch (err: any) {
-      setError(err.message || 'Erro ao buscar agendamentos.');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erro ao buscar agendamentos.';
+      setError(message);
     } finally {
       setIsLoading(false);
     }

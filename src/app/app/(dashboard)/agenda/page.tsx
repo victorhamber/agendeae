@@ -1,11 +1,10 @@
-import { PrismaClient } from '@prisma/client';
 import styles from '../../app.module.css';
 import AgendaFilter from './AgendaFilter';
 import AgendaTable from './AgendaTable';
 import { Suspense } from 'react';
-import { getMockAuth } from '@/app/actions/auth';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { requireCompanySession } from '@/lib/auth/server';
+import type { Prisma } from '@prisma/client';
 
 function getDateRange(filtro: string, de?: string, ate?: string) {
   const today = new Date();
@@ -58,25 +57,24 @@ function getDateRange(filtro: string, de?: string, ate?: string) {
 
 export default async function AgendaPage({ searchParams }: { searchParams: Promise<{ filtro?: string; de?: string; ate?: string }> }) {
   const params = await searchParams;
-  const company = await prisma.company.findFirst();
+  const session = await requireCompanySession();
+  const company = await prisma.company.findUnique({ where: { id: session.companyId } });
   
   if (!company) {
     return <div>Empresa não encontrada.</div>;
   }
 
-  const { role, professionalId } = await getMockAuth();
-
   const filtro = params.filtro || 'hoje';
   const range = getDateRange(filtro, params.de, params.ate);
 
-  const whereClause: any = {
+  const whereClause: Prisma.AppointmentWhereInput = {
     companyId: company.id,
     date: { gte: range.gte, lt: range.lt }
   };
 
   // Se for profissional logado, restringe apenas aos seus agendamentos
-  if (role === 'PROFESSIONAL' && professionalId) {
-    whereClause.professionalId = professionalId;
+  if (session.role === 'PROFESSIONAL' && session.professionalId) {
+    whereClause.professionalId = session.professionalId;
   }
 
   const appointments = await prisma.appointment.findMany({

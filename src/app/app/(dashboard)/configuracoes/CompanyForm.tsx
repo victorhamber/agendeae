@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { updateCompanyInfo, checkSlugAvailability } from '@/app/actions/company';
+import type { Company } from '@prisma/client';
 
 function ImageUploadField({ 
   label, 
@@ -77,6 +78,7 @@ function ImageUploadField({
           }}
         >
           {preview ? (
+            // eslint-disable-next-line @next/next/no-img-element
             <img src={preview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (
             <span style={{ fontSize: '1.5rem', color: 'var(--muted)' }}>📷</span>
@@ -110,13 +112,13 @@ function ImageUploadField({
             </button>
           )}
         </div>
-        <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleUpload} style={{ display: 'none' }} />
+        <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" aria-label={`Selecionar imagem: ${label}`} onChange={handleUpload} style={{ display: 'none' }} />
       </div>
     </div>
   );
 }
 
-export default function CompanyForm({ company }: { company: any }) {
+export default function CompanyForm({ company }: { company: Company }) {
   const [name, setName] = useState(company.name || '');
   const [segment, setSegment] = useState(company.segment || '');
   const [description, setDescription] = useState(company.description || '');
@@ -155,7 +157,7 @@ export default function CompanyForm({ company }: { company: any }) {
     if (slugTimeout.current) clearTimeout(slugTimeout.current);
     slugTimeout.current = setTimeout(async () => {
       try {
-        const result = await checkSlugAvailability(formatted, company.id);
+        const result = await checkSlugAvailability(formatted);
         if (result.available) {
           setSlugOk(true);
           setSlugError('');
@@ -175,13 +177,14 @@ export default function CompanyForm({ company }: { company: any }) {
 
     setIsSubmitting(true);
     try {
-      await updateCompanyInfo(company.id, { 
+      await updateCompanyInfo({ 
         name, segment, description, slug, primaryColor, logoUrl, coverUrl, whatsapp, instagram, address 
       });
       originalSlug.current = slug;
       alert('Personalização atualizada com sucesso!');
-    } catch (error: any) {
-      alert(error?.message || 'Erro ao atualizar dados.');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Erro ao atualizar dados.';
+      alert(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -194,7 +197,7 @@ export default function CompanyForm({ company }: { company: any }) {
         <div className="grid-2-col" style={{ gap: '1rem' }}>
           <div>
             <label style={{ display: 'block', fontWeight: 500, marginBottom: '0.5rem' }}>Nome do Negócio</label>
-            <input type="text" className="input" value={name} onChange={e => setName(e.target.value)} required />
+            <input type="text" className="input" value={name} onChange={e => setName(e.target.value)} aria-label="Nome do negócio" required />
           </div>
           <div>
             <label style={{ display: 'block', fontWeight: 500, marginBottom: '0.5rem' }}>Segmento / Tag (opcional)</label>
@@ -211,6 +214,7 @@ export default function CompanyForm({ company }: { company: any }) {
               type="text" className="input" value={slug} 
               onChange={e => handleSlugChange(e.target.value)} 
               required 
+              aria-label="Slug (link público da agenda)"
               style={{ 
                 borderColor: slugError ? 'var(--danger, #EF4444)' : slugOk ? 'var(--success, #22C55E)' : undefined 
               }}
@@ -264,7 +268,7 @@ export default function CompanyForm({ company }: { company: any }) {
         <div>
           <label style={{ display: 'block', fontWeight: 500, marginBottom: '0.5rem' }}>Cor Primária (Tema)</label>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <input type="color" value={primaryColor} onChange={e => setPrimaryColor(e.target.value)} style={{ width: '50px', height: '50px', padding: 0, border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer' }} />
+            <input type="color" value={primaryColor} onChange={e => setPrimaryColor(e.target.value)} aria-label="Cor primária da marca" style={{ width: '50px', height: '50px', padding: 0, border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer' }} />
             <span style={{ color: 'var(--muted)', fontSize: '0.875rem' }}>Cor dos botões e do design do seu link.</span>
           </div>
         </div>

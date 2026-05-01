@@ -2,35 +2,115 @@
 
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import bcrypt from 'bcryptjs';
+import { prisma } from '@/lib/prisma';
+import { signSession, getSessionCookieName } from '@/lib/auth/session';
+import type { SessionPayload, UserRole } from '@/lib/auth/types';
 
-export async function setMockRole(role: 'ADMIN' | 'PROFESSIONAL', professionalId?: string) {
-  const cookieStore = await cookies();
-  cookieStore.set('mockRole', role);
-  if (role === 'PROFESSIONAL' && professionalId) {
-    cookieStore.set('mockProfessionalId', professionalId);
-  } else {
-    cookieStore.delete('mockProfessionalId');
+function normalizeRole(role: string): UserRole {
+  if (role === 'SUPER_ADMIN' || role === 'COMPANY_ADMIN' || role === 'PROFESSIONAL') return role;
+  // compat: dados antigos que gravavam ADMIN
+  if (role === 'ADMIN') return 'COMPANY_ADMIN';
+  throw new Error('Role inválida');
+}
+
+async function buildSessionForUser(userId: string, role: UserRole): Promise<SessionPayload> {
+  if (role === 'SUPER_ADMIN') return { sub: userId, role };
+
+  if (role === 'PROFESSIONAL') {
+    const professional = await prisma.professional.findUnique({
+      where: { userId: userId },
+      select: { id: true, companyId: true, status: true },
+    });
+    if (!professional || professional.status !== 'ACTIVE') throw new Error('Profissional não encontrado ou inativo');
+    return { sub: userId, role, companyId: professional.companyId, professionalId: professional.id };
   }
+
+  const company = await prisma.company.findFirst({
+    where: { ownerId: userId, status: 'ACTIVE' },
+    select: { id: true },
+  });
+  if (!company) throw new Error('Empresa não encontrada para este usuário');
+  return { sub: userId, role, companyId: company.id };
 }
 
-export async function getMockAuth() {
-  const cookieStore = await cookies();
-  // By default, if no auth_token exists, we shouldn't return a role natively.
-  // But for now, just return what's there.
-  const role = cookieStore.get('mockRole')?.value || 'ADMIN';
-  const professionalId = cookieStore.get('mockProfessionalId')?.value;
-  return { role, professionalId };
-}
+export async function loginTenant(formData: FormData) {
+  const email = String(formData.get('email') || '').trim().toLowerCase();
+  const password = String(formData.get('password') || '');
+  if (!email || !password) throw new Error('Informe e-mail e senha');
 
-export async function loginTenant() {
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true, passwordHash: true, role: true, status: true },
+  });
+  if (!user || user.status !== 'ACTIVE') throw new Error('Credenciais inválidas');
+
+  const ok = await bcrypt.compare(password, user.passwordHash);
+  if (!ok) throw new Error('Credenciais inválidas');
+
+  const role = normalizeRole(user.role);
+  if (role === 'SUPER_ADMIN') throw new Error('Use o login do Super Admin');
+
+  const sessionPayload = await buildSessionForUser(user.id, role);
+  const token = await signSession(sessionPayload, '7d');
+
   const cookieStore = await cookies();
-  cookieStore.set('mockRole', 'ADMIN');
-  cookieStore.set('auth_token', 'tenant_logged_in');
+  cookieStore.set(getSessionCookieName(), token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 7,
+  });
+
+  // compat: remove cookies antigas
+  cookieStore.delete('auth_token');
+  cookieStore.delete('mockRole');
+  cookieStore.delete('mockProfessionalId');
+
   redirect('/');
 }
 
-export async function loginSuperAdmin() {
+export async function loginSuperAdmin(formData: FormData) {
+  const email = String(formData.get('email') || '').trim().toLowerCase();
+  const password = String(formData.get('password') || '');
+  if (!email || !password) throw new Error('Informe e-mail e senha');
+
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true, passwordHash: true, role: true, status: true },
+  });
+  if (!user || user.status !== 'ACTIVE') throw new Error('Credenciais inválidas');
+  const role = normalizeRole(user.role);
+  if (role !== 'SUPER_ADMIN') throw new Error('Sem permissão');
+
+  const ok = await bcrypt.compare(password, user.passwordHash);
+  if (!ok) throw new Error('Credenciais inválidas');
+
+  const sessionPayload = await buildSessionForUser(user.id, role);
+  const token = await signSession(sessionPayload, '7d');
+
   const cookieStore = await cookies();
-  cookieStore.set('auth_token', 'super_admin_logged_in');
+  cookieStore.set(getSessionCookieName(), token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 7,
+  });
+
+  cookieStore.delete('auth_token');
+  cookieStore.delete('mockRole');
+  cookieStore.delete('mockProfessionalId');
+
   redirect('/');
+}
+
+export async function logout() {
+  const cookieStore = await cookies();
+  cookieStore.delete(getSessionCookieName());
+  cookieStore.delete('auth_token');
+  cookieStore.delete('mockRole');
+  cookieStore.delete('mockProfessionalId');
+  redirect('/login');
 }

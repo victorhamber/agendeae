@@ -1,10 +1,8 @@
-import { PrismaClient } from '@prisma/client';
 import { notFound } from 'next/navigation';
 import CustomerAppointmentsTracker from './CustomerAppointmentsTracker';
 import styles from '../agenda.module.css';
 import Link from 'next/link';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 export default async function MeusAgendamentosPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

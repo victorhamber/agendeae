@@ -1,5 +1,3 @@
-import styles from '../../app/app.module.css';
-
 import { loginTenant } from '@/app/actions/auth';
 
 export default function TenantLogin() {
@@ -11,10 +9,10 @@ export default function TenantLogin() {
         
         <form action={loginTenant} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div>
-            <input type="email" placeholder="Seu e-mail" className="input" required />
+            <input name="email" type="email" placeholder="Seu e-mail" className="input" required />
           </div>
           <div>
-            <input type="password" placeholder="Sua senha" className="input" required />
+            <input name="password" type="password" placeholder="Sua senha" className="input" required />
             <div style={{ textAlign: 'right', marginTop: '0.5rem' }}>
               <a href="#" style={{ fontSize: '0.75rem', color: 'var(--primary)', textDecoration: 'none', fontWeight: 500 }}>
                 Esqueci minha senha

@@ -2,8 +2,9 @@
 
 import { useState, useRef } from 'react';
 import { createProfessional, updateProfessional } from '@/app/actions/professionals';
+import type { Professional } from '@prisma/client';
 
-export default function ProfessionalForm({ companyId, professional }: { companyId: string, professional?: any }) {
+export default function ProfessionalForm({ professional }: { professional?: Professional }) {
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState(professional?.name || '');
   const [specialty, setSpecialty] = useState(professional?.specialty || '');
@@ -62,7 +63,7 @@ export default function ProfessionalForm({ companyId, professional }: { companyI
           password: password || undefined 
         });
       } else {
-        await createProfessional(companyId, { 
+        await createProfessional({ 
           name, specialty, 
           email: email || undefined, 
           password: password || undefined 
@@ -78,9 +79,10 @@ export default function ProfessionalForm({ companyId, professional }: { companyI
         setEmail('');
         setPassword('');
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error(error);
-      alert(error.message || 'Erro ao salvar profissional');
+      const message = error instanceof Error ? error.message : 'Erro ao salvar profissional';
+      alert(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -135,6 +137,7 @@ export default function ProfessionalForm({ companyId, professional }: { companyI
               }}
             >
               {photoPreview ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img src={photoPreview} alt="Foto" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
                 <span style={{ fontSize: '1.5rem', color: 'var(--muted)' }}>👤</span>
@@ -161,7 +164,7 @@ export default function ProfessionalForm({ companyId, professional }: { companyI
               )}
               <span style={{ fontSize: '0.65rem', color: 'var(--muted)' }}>Quadrado 400×400px. JPG, PNG ou WebP.</span>
             </div>
-            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleImageUpload} style={{ display: 'none' }} />
+            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" aria-label="Selecionar foto do profissional" onChange={handleImageUpload} style={{ display: 'none' }} />
           </div>
 
           {/* Nome e Especialidade */}
@@ -194,7 +197,7 @@ export default function ProfessionalForm({ companyId, professional }: { companyI
           {/* Avaliação */}
           <div>
             <label style={{ display: 'block', fontSize: '0.8rem', marginBottom: '0.25rem', fontWeight: 500 }}>Avaliação (Estrelas)</label>
-            <input type="number" step="0.1" min="0" max="5" className="input" required value={ratingAverage} onChange={e => setRatingAverage(Number(e.target.value))} style={{ maxWidth: '120px' }} />
+            <input type="number" step="0.1" min="0" max="5" className="input" required value={ratingAverage} onChange={e => setRatingAverage(Number(e.target.value))} aria-label="Avaliação do profissional" style={{ maxWidth: '120px' }} />
           </div>
 
           {/* Botões */}

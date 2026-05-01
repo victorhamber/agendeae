@@ -1,11 +1,15 @@
 'use server';
 
-import { PrismaClient } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { requireCompanySession } from '@/lib/auth/server';
 
 export async function updateAppointmentStatus(id: string, newStatus: string) {
+  const session = await requireCompanySession();
+  const appt = await prisma.appointment.findUnique({ where: { id }, select: { companyId: true, professionalId: true } });
+  if (!appt || appt.companyId !== session.companyId) throw new Error('Sem permissão');
+  if (session.role === 'PROFESSIONAL' && session.professionalId !== appt.professionalId) throw new Error('Sem permissão');
+
   await prisma.appointment.update({
     where: { id },
     data: { status: newStatus }
@@ -17,6 +21,11 @@ export async function updateAppointmentStatus(id: string, newStatus: string) {
 }
 
 export async function deleteAppointment(id: string) {
+  const session = await requireCompanySession();
+  const appt = await prisma.appointment.findUnique({ where: { id }, select: { companyId: true, professionalId: true } });
+  if (!appt || appt.companyId !== session.companyId) throw new Error('Sem permissão');
+  if (session.role === 'PROFESSIONAL' && session.professionalId !== appt.professionalId) throw new Error('Sem permissão');
+
   await prisma.appointment.delete({
     where: { id }
   });

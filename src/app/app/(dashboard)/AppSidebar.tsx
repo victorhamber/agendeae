@@ -8,19 +8,16 @@ import styles from '../app.module.css';
 export default function AppSidebar({ 
   role 
 }: { 
-  role: string 
+  role: 'COMPANY_ADMIN' | 'PROFESSIONAL'
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
 
   // Close menu when route changes
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsOpen(false);
   }, [pathname]);
-
-  if (pathname === '/app/login' || pathname === '/login') {
-    return null;
-  }
 
   // Lock body scroll when menu is open
   useEffect(() => {
@@ -34,11 +31,15 @@ export default function AppSidebar({
     };
   }, [isOpen]);
 
+  if (pathname === '/app/login' || pathname === '/login') {
+    return null;
+  }
+
   const navLinks = [
-    ...(role === 'ADMIN' ? [{ href: '/', label: 'Dashboard' }] : []),
+    ...(role === 'COMPANY_ADMIN' ? [{ href: '/', label: 'Dashboard' }] : []),
     { href: '/agenda', label: 'Agenda' },
     ...(role === 'PROFESSIONAL' ? [{ href: '/perfil', label: 'Meu Perfil' }] : []),
-    ...(role === 'ADMIN' ? [
+    ...(role === 'COMPANY_ADMIN' ? [
       { href: '/servicos', label: 'Serviços' },
       { href: '/profissionais', label: 'Profissionais' },
       { href: '/clientes', label: 'Clientes' },

@@ -2,8 +2,9 @@
 
 import { useState, useRef } from 'react';
 import { createService, updateService } from '@/app/actions/services';
+import type { Service } from '@prisma/client';
 
-export default function ServiceForm({ companyId, service }: { companyId: string, service?: any }) {
+export default function ServiceForm({ service }: { service?: Service }) {
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState(service?.name || '');
   const [description, setDescription] = useState(service?.description || '');
@@ -68,7 +69,7 @@ export default function ServiceForm({ companyId, service }: { companyId: string,
       if (service) {
         await updateService(service.id, payload);
       } else {
-        await createService(companyId, payload);
+        await createService(payload);
       }
       setIsOpen(false);
       if (!service) {
@@ -147,6 +148,7 @@ export default function ServiceForm({ companyId, service }: { companyId: string,
               }}
             >
               {imagePreview ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img 
                   src={imagePreview} 
                   alt="Preview" 
@@ -195,6 +197,7 @@ export default function ServiceForm({ companyId, service }: { companyId: string,
               ref={fileInputRef}
               type="file"
               accept="image/jpeg,image/png,image/webp,image/gif"
+              aria-label="Selecionar imagem do serviço"
               onChange={handleImageUpload}
               style={{ display: 'none' }}
             />

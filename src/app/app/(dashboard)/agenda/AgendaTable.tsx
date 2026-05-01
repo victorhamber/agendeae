@@ -2,8 +2,15 @@
 
 import { useState } from 'react';
 import StatusSelect from './StatusSelect';
+import type { Appointment, Customer, Professional, Service } from '@prisma/client';
 
-export default function AgendaTable({ appointments }: { appointments: any[] }) {
+type AppointmentRow = Appointment & {
+  customer: Customer;
+  service: Service;
+  professional: Professional;
+};
+
+export default function AgendaTable({ appointments }: { appointments: AppointmentRow[] }) {
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredAppointments = appointments.filter(app => {

@@ -1,12 +1,12 @@
-import { PrismaClient } from '@prisma/client';
 import styles from '../../app.module.css';
 import ServiceForm from './ServiceForm';
 import DeleteServiceButton from './DeleteServiceButton';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { requireCompanySession } from '@/lib/auth/server';
 
 export default async function ServicosPage() {
-  const company = await prisma.company.findFirst();
+  const session = await requireCompanySession();
+  const company = await prisma.company.findUnique({ where: { id: session.companyId } });
   
   if (!company) {
     return <div>Empresa não encontrada.</div>;
@@ -24,7 +24,7 @@ export default async function ServicosPage() {
     <div>
       <header className={styles.header}>
         <h1 className={styles.title}>Serviços</h1>
-        <ServiceForm companyId={company.id} />
+        <ServiceForm />
       </header>
 
       <div className="glass" style={{ borderRadius: 'var(--radius)', overflow: 'hidden', width: '100%', maxWidth: '100%' }}>
@@ -58,6 +58,7 @@ export default async function ServicosPage() {
                         flexShrink: 0
                       }}>
                         {service.imageUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
                           <img src={service.imageUrl} alt={service.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         ) : (
                           <span style={{ color: 'var(--muted)', fontSize: '1.25rem' }}>✂️</span>
@@ -87,7 +88,7 @@ export default async function ServicosPage() {
                       </span>
                     </td>
                     <td style={{ padding: '0.75rem 1rem', textAlign: 'right', display: 'flex', gap: '1rem', justifyContent: 'flex-end', alignItems: 'center' }}>
-                      <ServiceForm companyId={company.id} service={service} />
+                      <ServiceForm service={service} />
                       <DeleteServiceButton serviceId={service.id} />
                     </td>
                   </tr>

@@ -1,11 +1,11 @@
-import { PrismaClient } from '@prisma/client';
 import styles from '../../app.module.css';
 import ClientTable from './ClientTable';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { requireCompanySession } from '@/lib/auth/server';
 
 export default async function ClientesPage() {
-  const company = await prisma.company.findFirst();
+  const session = await requireCompanySession();
+  const company = await prisma.company.findUnique({ where: { id: session.companyId } });
   
   if (!company) {
     return <div>Empresa não encontrada.</div>;
@@ -52,7 +52,7 @@ export default async function ClientesPage() {
       noShowCount,
       totalSpent,
       lastVisit,
-      tags
+      computedTags: tags
     };
   });
 

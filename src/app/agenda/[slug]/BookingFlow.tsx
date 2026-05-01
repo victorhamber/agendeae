@@ -41,13 +41,11 @@ export default function BookingFlow({
   services, 
   professionals,
   companyId,
-  companyName,
   companyWhatsapp
 }: { 
   services: Service[], 
   professionals: Professional[],
   companyId: string,
-  companyName: string,
   companyWhatsapp: string
 }) {
   const [selectedProfessional, setSelectedProfessional] = useState<Professional | null>(null);
@@ -161,10 +159,11 @@ export default function BookingFlow({
       };
       fetchTimes();
     } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setAvailableTimes([]);
       setSelectedTime('');
     }
-  }, [selectedProfessional, selectedDateObj, totalDuration]);
+  }, [selectedProfessional, selectedDateObj, totalDuration, selectedServices.length]);
 
   const handleBookNow = () => {
     if (!selectedProfessional || selectedServices.length === 0 || !selectedDateObj || !selectedTime) return;

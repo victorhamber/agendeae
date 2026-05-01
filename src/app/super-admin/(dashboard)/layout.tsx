@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import styles from '../super-admin.module.css';
 
 import SuperAdminSidebar from './SuperAdminSidebar';

@@ -1,6 +1,6 @@
 import styles from '../app.module.css';
-import { getMockAuth } from '@/app/actions/auth';
 import AppSidebar from './AppSidebar';
+import { requireCompanySession } from '@/lib/auth/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,11 +9,11 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { role } = await getMockAuth();
+  const session = await requireCompanySession();
 
   return (
     <div className={styles.container}>
-      <AppSidebar role={role} />
+      <AppSidebar role={session.role} />
       <main className={styles.main}>
         {children}
       </main>

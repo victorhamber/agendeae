@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { getSessionCookieName, verifySession } from '@/lib/auth/session';
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const url = request.nextUrl;
   
   const hostname = request.headers.get('host') || '';
@@ -15,9 +16,18 @@ export function middleware(request: NextRequest) {
   // 1. SUPER ADMIN: adm.agendeae.com.br
   // ─────────────────────────────────────────────
   if (hostname.startsWith('adm.')) {
-    const hasAuthToken = request.cookies.has('auth_token');
-    if (!hasAuthToken && url.pathname !== '/login') {
-      return NextResponse.redirect(new URL('/login', request.url));
+    const token = request.cookies.get(getSessionCookieName())?.value;
+    if (!token && url.pathname !== '/login') return NextResponse.redirect(new URL('/login', request.url));
+
+    if (token) {
+      try {
+        const session = await verifySession(token);
+        if (session.role !== 'SUPER_ADMIN' && url.pathname !== '/login') {
+          return NextResponse.redirect(new URL('/login', request.url));
+        }
+      } catch {
+        if (url.pathname !== '/login') return NextResponse.redirect(new URL('/login', request.url));
+      }
     }
     if (url.pathname === '/') {
       return NextResponse.rewrite(new URL('/super-admin', request.url));
@@ -30,9 +40,17 @@ export function middleware(request: NextRequest) {
   //    100% bloqueado — exige login em TODAS as rotas
   // ─────────────────────────────────────────────
   if (hostname.startsWith('app.')) {
-    const hasAuthToken = request.cookies.has('auth_token');
-    if (!hasAuthToken && url.pathname !== '/login') {
-      return NextResponse.redirect(new URL('/login', request.url));
+    const token = request.cookies.get(getSessionCookieName())?.value;
+    if (!token && url.pathname !== '/login') return NextResponse.redirect(new URL('/login', request.url));
+    if (token) {
+      try {
+        const session = await verifySession(token);
+        if ((session.role === 'SUPER_ADMIN' || !session.companyId) && url.pathname !== '/login') {
+          return NextResponse.redirect(new URL('/login', request.url));
+        }
+      } catch {
+        if (url.pathname !== '/login') return NextResponse.redirect(new URL('/login', request.url));
+      }
     }
     if (url.pathname === '/') {
       return NextResponse.rewrite(new URL('/app', request.url));

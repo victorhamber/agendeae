@@ -1,13 +1,13 @@
-import { PrismaClient } from '@prisma/client';
 import styles from '../../../../app.module.css';
 import AvailabilityForm from '../../../configuracoes/AvailabilityForm';
 import BlockedTimesForm from '../BlockedTimesForm';
 import Link from 'next/link';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { requireCompanySession } from '@/lib/auth/server';
 
 export default async function ProfissionalHorariosPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const session = await requireCompanySession();
 
   const professional = await prisma.professional.findUnique({
     where: { id }
@@ -15,6 +15,12 @@ export default async function ProfissionalHorariosPage({ params }: { params: Pro
 
   if (!professional) {
     return <div>Profissional não encontrado.</div>;
+  }
+  if (professional.companyId !== session.companyId) {
+    return <div>Acesso negado.</div>;
+  }
+  if (session.role === 'PROFESSIONAL' && session.professionalId !== professional.id) {
+    return <div>Acesso negado.</div>;
   }
 
   const availabilities = await prisma.availability.findMany({
@@ -43,14 +49,12 @@ export default async function ProfissionalHorariosPage({ params }: { params: Pro
         </p>
 
         <AvailabilityForm 
-          companyId={professional.companyId} 
           professionalId={professional.id} 
           initialData={availabilities} 
         />
       </div>
 
       <BlockedTimesForm 
-        companyId={professional.companyId} 
         professionalId={professional.id} 
         blockedTimes={blockedTimes} 
       />

@@ -1,11 +1,10 @@
 'use server';
 
-import { PrismaClient } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
+import { prisma } from '@/lib/prisma';
+import { requireCompanySession } from '@/lib/auth/server';
 
-const prisma = new PrismaClient();
-
-export async function updateCompanyInfo(id: string, data: {
+export async function updateCompanyInfo(data: {
   name: string;
   description: string;
   slug: string;
@@ -17,6 +16,7 @@ export async function updateCompanyInfo(id: string, data: {
   address?: string;
   segment?: string;
 }) {
+  const session = await requireCompanySession();
   // Validar slug: apenas letras minúsculas, números e hífens
   const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
   if (!slugRegex.test(data.slug)) {
@@ -27,7 +27,7 @@ export async function updateCompanyInfo(id: string, data: {
   const existingCompany = await prisma.company.findFirst({
     where: {
       slug: data.slug,
-      id: { not: id }
+      id: { not: session.companyId }
     }
   });
 
@@ -36,7 +36,7 @@ export async function updateCompanyInfo(id: string, data: {
   }
 
   await prisma.company.update({
-    where: { id },
+    where: { id: session.companyId },
     data: {
       name: data.name,
       description: data.description,
@@ -56,11 +56,12 @@ export async function updateCompanyInfo(id: string, data: {
   return { success: true };
 }
 
-export async function checkSlugAvailability(slug: string, companyId: string) {
+export async function checkSlugAvailability(slug: string) {
+  const session = await requireCompanySession();
   const existing = await prisma.company.findFirst({
     where: {
       slug,
-      id: { not: companyId }
+      id: { not: session.companyId }
     }
   });
   return { available: !existing };

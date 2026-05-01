@@ -1,48 +1,49 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
+import { NextResponse } from 'next/server';
+import { promises as fs } from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 
-export async function POST(request: NextRequest) {
-  try {
-    const formData = await request.formData();
-    const file = formData.get('file') as File | null;
+export const runtime = 'nodejs';
 
-    if (!file) {
-      return NextResponse.json({ error: 'Nenhum arquivo enviado.' }, { status: 400 });
-    }
+const MAX_BYTES = 5 * 1024 * 1024; // 5MB
+const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 
-    // Validar tipo de arquivo
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-    if (!allowedTypes.includes(file.type)) {
-      return NextResponse.json({ error: 'Formato não suportado. Use JPEG, PNG, WebP ou GIF.' }, { status: 400 });
-    }
+function getUploadsDir() {
+  // Em produção no Easypanel, você pode montar um volume em /app/public/uploads
+  return process.env.UPLOADS_DIR || path.join(process.cwd(), 'public', 'uploads');
+}
 
-    // Limitar tamanho (5MB)
-    const MAX_SIZE = 5 * 1024 * 1024;
-    if (file.size > MAX_SIZE) {
-      return NextResponse.json({ error: 'Arquivo muito grande. Máximo 5MB.' }, { status: 400 });
-    }
+export async function POST(req: Request) {
+  const formData = await req.formData();
+  const file = formData.get('file');
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    // Gerar nome único para o arquivo
-    const ext = file.name.split('.').pop() || 'jpg';
-    const uniqueName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
-
-    // Garantir que o diretório existe
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-    await mkdir(uploadDir, { recursive: true });
-
-    // Salvar o arquivo
-    const filePath = path.join(uploadDir, uniqueName);
-    await writeFile(filePath, buffer);
-
-    // Retornar URL pública
-    const url = `/uploads/${uniqueName}`;
-    return NextResponse.json({ url });
-  } catch (error) {
-    console.error('Erro no upload:', error);
-    return NextResponse.json({ error: 'Erro interno no upload.' }, { status: 500 });
+  if (!file || !(file instanceof File)) {
+    return NextResponse.json({ error: 'Arquivo inválido' }, { status: 400 });
   }
+  if (!ALLOWED_MIME.has(file.type)) {
+    return NextResponse.json({ error: 'Formato não permitido' }, { status: 400 });
+  }
+  if (file.size > MAX_BYTES) {
+    return NextResponse.json({ error: 'Arquivo muito grande (máx 5MB)' }, { status: 400 });
+  }
+
+  const ext =
+    file.type === 'image/jpeg' ? 'jpg' :
+    file.type === 'image/png' ? 'png' :
+    file.type === 'image/webp' ? 'webp' :
+    file.type === 'image/gif' ? 'gif' :
+    'bin';
+
+  const uploadsDir = getUploadsDir();
+  await fs.mkdir(uploadsDir, { recursive: true });
+
+  const id = crypto.randomUUID();
+  const filename = `${id}.${ext}`;
+  const absPath = path.join(uploadsDir, filename);
+
+  const bytes = await file.arrayBuffer();
+  await fs.writeFile(absPath, Buffer.from(bytes));
+
+  const urlPath = `/uploads/${filename}`;
+  return NextResponse.json({ url: urlPath });
 }

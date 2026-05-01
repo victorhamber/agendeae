@@ -1,20 +1,20 @@
 'use server';
 
-import { PrismaClient } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
+import { prisma } from '@/lib/prisma';
+import { requireCompanySession } from '@/lib/auth/server';
 
-const prisma = new PrismaClient();
-
-export async function createService(companyId: string, data: { 
+export async function createService(data: { 
   name: string; 
   price: number; 
   durationMinutes: number;
   description?: string;
   imageUrl?: string;
 }) {
+  const session = await requireCompanySession();
   await prisma.service.create({
     data: {
-      companyId,
+      companyId: session.companyId,
       name: data.name,
       price: data.price,
       durationMinutes: data.durationMinutes,
@@ -29,7 +29,10 @@ export async function createService(companyId: string, data: {
 }
 
 export async function deleteService(id: string) {
+  const session = await requireCompanySession();
   // Soft delete para não quebrar histórico de agendamentos
+  const service = await prisma.service.findUnique({ where: { id }, select: { companyId: true } });
+  if (!service || service.companyId !== session.companyId) throw new Error('Sem permissão');
   await prisma.service.update({
     where: { id },
     data: { status: 'INACTIVE' }
@@ -46,6 +49,9 @@ export async function updateService(id: string, data: {
   description?: string;
   imageUrl?: string;
 }) {
+  const session = await requireCompanySession();
+  const service = await prisma.service.findUnique({ where: { id }, select: { companyId: true } });
+  if (!service || service.companyId !== session.companyId) throw new Error('Sem permissão');
   await prisma.service.update({
     where: { id },
     data: {

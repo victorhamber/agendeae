@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { updateProfessional } from '@/app/actions/professionals';
+import type { Professional } from '@prisma/client';
 
-export default function PerfilForm({ professional }: { professional: any }) {
+export default function PerfilForm({ professional }: { professional: Professional }) {
   const [photoUrl, setPhotoUrl] = useState(professional.photoUrl || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
@@ -17,7 +18,7 @@ export default function PerfilForm({ professional }: { professional: any }) {
         name: professional.name, 
         specialty: professional.specialty || '', 
         photoUrl,
-        ratingAverage: professional.ratingAverage 
+        ratingAverage: professional.ratingAverage ?? undefined
       });
       setMessage('Foto de perfil atualizada com sucesso!');
       setTimeout(() => setMessage(''), 3000);

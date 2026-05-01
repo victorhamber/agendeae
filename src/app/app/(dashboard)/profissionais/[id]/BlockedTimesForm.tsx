@@ -12,11 +12,9 @@ type BlockedTime = {
 };
 
 export default function BlockedTimesForm({ 
-  companyId, 
   professionalId, 
   blockedTimes 
 }: { 
-  companyId: string; 
   professionalId: string; 
   blockedTimes: BlockedTime[];
 }) {
@@ -32,7 +30,6 @@ export default function BlockedTimesForm({
     setIsSubmitting(true);
     try {
       await createBlockedTime({
-        companyId,
         professionalId,
         dateStr,
         startTime,
@@ -73,15 +70,15 @@ export default function BlockedTimesForm({
       <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: '1.5rem', padding: '1rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)', backgroundColor: 'rgba(0,0,0,0.02)' }}>
         <div>
           <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>Data</label>
-          <input type="date" className="input" value={dateStr} onChange={e => setDateStr(e.target.value)} style={{ padding: '0.5rem' }} />
+          <input type="date" className="input" value={dateStr} onChange={e => setDateStr(e.target.value)} aria-label="Data do bloqueio" style={{ padding: '0.5rem' }} />
         </div>
         <div>
           <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>Início</label>
-          <input type="time" className="input" value={startTime} onChange={e => setStartTime(e.target.value)} style={{ padding: '0.5rem' }} />
+          <input type="time" className="input" value={startTime} onChange={e => setStartTime(e.target.value)} aria-label="Horário de início do bloqueio" style={{ padding: '0.5rem' }} />
         </div>
         <div>
           <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>Fim</label>
-          <input type="time" className="input" value={endTime} onChange={e => setEndTime(e.target.value)} style={{ padding: '0.5rem' }} />
+          <input type="time" className="input" value={endTime} onChange={e => setEndTime(e.target.value)} aria-label="Horário de fim do bloqueio" style={{ padding: '0.5rem' }} />
         </div>
         <div style={{ flex: 1, minWidth: '150px' }}>
           <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>Motivo (opcional)</label>

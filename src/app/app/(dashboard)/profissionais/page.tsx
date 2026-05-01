@@ -1,14 +1,14 @@
-import { PrismaClient } from '@prisma/client';
 import styles from '../../app.module.css';
 import ProfessionalForm from './ProfessionalForm';
 import Link from 'next/link';
 
 import DeleteProfessionalButton from './DeleteProfessionalButton';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { requireCompanySession } from '@/lib/auth/server';
 
 export default async function ProfissionaisPage() {
-  const company = await prisma.company.findFirst();
+  const session = await requireCompanySession();
+  const company = await prisma.company.findUnique({ where: { id: session.companyId } });
   
   if (!company) {
     return <div>Empresa não encontrada.</div>;
@@ -26,7 +26,7 @@ export default async function ProfissionaisPage() {
     <div>
       <header className={styles.header}>
         <h1 className={styles.title}>Profissionais</h1>
-        <ProfessionalForm companyId={company.id} />
+        <ProfessionalForm />
       </header>
 
       <div className="glass" style={{ borderRadius: 'var(--radius)', overflow: 'hidden', width: '100%', maxWidth: '100%' }}>
@@ -66,7 +66,7 @@ export default async function ProfissionaisPage() {
                       </span>
                     </td>
                     <td style={{ padding: '1rem', textAlign: 'right', display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', alignItems: 'center' }}>
-                      <ProfessionalForm companyId={company.id} professional={professional} />
+                      <ProfessionalForm professional={professional} />
                       <Link href={`/app/profissionais/${professional.id}/horarios`} style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 500, fontSize: '0.875rem' }}>
                         Horários
                       </Link>

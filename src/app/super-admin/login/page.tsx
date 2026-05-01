@@ -1,5 +1,3 @@
-import styles from '../../app/app.module.css';
-
 import { loginSuperAdmin } from '@/app/actions/auth';
 
 export default function SuperAdminLogin() {
@@ -11,10 +9,10 @@ export default function SuperAdminLogin() {
         
         <form action={loginSuperAdmin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div>
-            <input type="email" placeholder="E-mail master" className="input" style={{ backgroundColor: '#18181b', color: '#fff', borderColor: '#27272a' }} required />
+            <input name="email" type="email" placeholder="E-mail master" className="input" style={{ backgroundColor: '#18181b', color: '#fff', borderColor: '#27272a' }} required />
           </div>
           <div>
-            <input type="password" placeholder="Senha mestre" className="input" style={{ backgroundColor: '#18181b', color: '#fff', borderColor: '#27272a' }} required />
+            <input name="password" type="password" placeholder="Senha mestre" className="input" style={{ backgroundColor: '#18181b', color: '#fff', borderColor: '#27272a' }} required />
             <div style={{ textAlign: 'right', marginTop: '0.5rem' }}>
               <a href="#" style={{ fontSize: '0.75rem', color: '#6366f1', textDecoration: 'none', fontWeight: 500 }}>
                 Esqueci minha senha

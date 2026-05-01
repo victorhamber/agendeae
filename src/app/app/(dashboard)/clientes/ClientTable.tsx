@@ -1,8 +1,22 @@
 'use client';
 
 import { useState } from 'react';
+import type { Appointment, Customer, Professional, Service } from '@prisma/client';
 
-export default function ClientTable({ customerData }: { customerData: any[] }) {
+type CustomerAppointmentRow = Appointment & { service: Service; professional: Professional };
+type CustomerRow = Omit<Customer, 'tags'> & {
+  tags: Customer['tags'];
+  appointments: CustomerAppointmentRow[];
+  totalAppointments: number;
+  completedCount: number;
+  cancelledCount: number;
+  noShowCount: number;
+  totalSpent: number;
+  lastVisit?: CustomerAppointmentRow;
+  computedTags: string[];
+};
+
+export default function ClientTable({ customerData }: { customerData: CustomerRow[] }) {
   const [searchTerm, setSearchTerm] = useState('');
 
   const tagColors: Record<string, string> = {
@@ -68,7 +82,7 @@ export default function ClientTable({ customerData }: { customerData: any[] }) {
                   </td>
                   <td style={{ padding: '1rem' }}>
                     <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
-                      {customer.tags.map((tag: string) => (
+                      {customer.computedTags.map((tag: string) => (
                         <span key={tag} style={{
                           padding: '0.15rem 0.5rem',
                           borderRadius: '9999px',

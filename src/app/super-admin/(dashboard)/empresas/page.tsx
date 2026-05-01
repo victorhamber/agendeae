@@ -1,9 +1,9 @@
-import { PrismaClient } from '@prisma/client';
 import styles from '../../super-admin.module.css';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { requireSuperAdminSession } from '@/lib/auth/server';
 
 export default async function EmpresasPage() {
+  await requireSuperAdminSession();
   const companies = await prisma.company.findMany({
     orderBy: { createdAt: 'desc' }
   });

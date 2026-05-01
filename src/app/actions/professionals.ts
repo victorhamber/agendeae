@@ -1,13 +1,13 @@
 'use server';
 
-import { PrismaClient } from '@prisma/client';
 import { revalidatePath } from 'next/cache';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
+import { requireCompanySession } from '@/lib/auth/server';
 
 import bcrypt from 'bcryptjs';
 
-export async function createProfessional(companyId: string, data: { name: string, specialty: string, email?: string, password?: string }) {
+export async function createProfessional(data: { name: string, specialty: string, email?: string, password?: string }) {
+  const session = await requireCompanySession();
   let userId = null;
 
   if (data.email && data.password) {
@@ -31,7 +31,7 @@ export async function createProfessional(companyId: string, data: { name: string
 
   await prisma.professional.create({
     data: {
-      companyId,
+      companyId: session.companyId,
       name: data.name,
       specialty: data.specialty,
       email: data.email || null,
@@ -45,6 +45,9 @@ export async function createProfessional(companyId: string, data: { name: string
 }
 
 export async function deleteProfessional(id: string) {
+  const session = await requireCompanySession();
+  const prof = await prisma.professional.findUnique({ where: { id }, select: { companyId: true } });
+  if (!prof || prof.companyId !== session.companyId) throw new Error('Sem permissão');
   await prisma.professional.update({
     where: { id },
     data: { status: 'INACTIVE' } // Soft delete
@@ -55,8 +58,10 @@ export async function deleteProfessional(id: string) {
 }
 
 export async function updateProfessional(id: string, data: { name: string, specialty: string, photoUrl?: string, ratingAverage?: number, email?: string, password?: string }) {
+  const session = await requireCompanySession();
   const prof = await prisma.professional.findUnique({ where: { id } });
   if (!prof) throw new Error('Professional not found');
+  if (prof.companyId !== session.companyId) throw new Error('Sem permissão');
 
   let userId = prof.userId;
 
@@ -74,7 +79,7 @@ export async function updateProfessional(id: string, data: { name: string, speci
       userId = newUser.id;
     } else if (userId) {
       // Atualizar usuário existente
-      const updateData: any = { name: data.name, email: data.email };
+      const updateData: { name: string; email: string; passwordHash?: string } = { name: data.name, email: data.email };
       if (data.password) {
         updateData.passwordHash = await bcrypt.hash(data.password, 10);
       }

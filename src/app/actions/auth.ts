@@ -81,12 +81,13 @@ export async function loginTenant(prevState: LoginState, formData: FormData): Pr
     cookieStore.delete('mockRole');
     cookieStore.delete('mockProfessionalId');
 
+    // Redirecionar direto pelo servidor
+    redirect('/');
   } catch (error: any) {
+    if (error.message === 'NEXT_REDIRECT') throw error;
     console.error('Login error:', error);
     return { error: error.message || 'Erro ao realizar login' };
   }
-
-  return { success: true };
 }
 
 export async function loginSuperAdmin(prevState: LoginState, formData: FormData): Promise<LoginState> {
@@ -133,12 +134,12 @@ export async function loginSuperAdmin(prevState: LoginState, formData: FormData)
     cookieStore.delete('mockRole');
     cookieStore.delete('mockProfessionalId');
 
+    redirect('/');
   } catch (error: any) {
+    if (error.message === 'NEXT_REDIRECT') throw error;
     console.error('Super Admin login error:', error);
     return { error: error.message || 'Erro ao realizar login' };
   }
-
-  return { success: true };
 }
 
 export async function logout() {

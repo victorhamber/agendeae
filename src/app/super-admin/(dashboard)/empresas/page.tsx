@@ -2,6 +2,7 @@ import styles from '../../super-admin.module.css';
 import { prisma } from '@/lib/prisma';
 import { requireSuperAdminSession } from '@/lib/auth/server';
 import NewCompanyForm from './NewCompanyForm';
+import EditCompanyForm from './EditCompanyForm';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,6 +29,7 @@ export default async function EmpresasPage() {
               <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 500, color: 'var(--muted)' }}>Slug</th>
               <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 500, color: 'var(--muted)' }}>Status</th>
               <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 500, color: 'var(--muted)' }}>Data de Criação</th>
+              <th style={{ padding: '1rem', textAlign: 'right', fontWeight: 500, color: 'var(--muted)' }}>Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -59,6 +61,9 @@ export default async function EmpresasPage() {
                   </td>
                   <td style={{ padding: '1rem', fontSize: '0.875rem', color: 'var(--muted)' }}>
                     {company.createdAt.toLocaleDateString('pt-BR')}
+                  </td>
+                  <td style={{ padding: '1rem', textAlign: 'right' }}>
+                    <EditCompanyForm company={{ id: company.id, name: company.name, slug: company.slug, status: company.status }} />
                   </td>
                 </tr>
               ))

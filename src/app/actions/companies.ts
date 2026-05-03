@@ -55,5 +55,32 @@ export async function createCompany(formData: FormData) {
   });
 
   revalidatePath('/empresas');
+  revalidatePath('/empresas');
+  revalidatePath('/licencas');
+}
+
+export async function updateCompany(formData: FormData) {
+  await requireSuperAdminSession();
+
+  const id = String(formData.get('id') || '');
+  const name = String(formData.get('name') || '').trim();
+  const slug = String(formData.get('slug') || '').trim().toLowerCase();
+  const status = String(formData.get('status') || 'ACTIVE');
+
+  if (!id || !name || !slug) {
+    throw new Error('Nome e slug são obrigatórios.');
+  }
+
+  const existingCompany = await prisma.company.findUnique({ where: { slug } });
+  if (existingCompany && existingCompany.id !== id) {
+    throw new Error('Slug já em uso por outra empresa.');
+  }
+
+  await prisma.company.update({
+    where: { id },
+    data: { name, slug, status },
+  });
+
+  revalidatePath('/empresas');
   revalidatePath('/licencas');
 }

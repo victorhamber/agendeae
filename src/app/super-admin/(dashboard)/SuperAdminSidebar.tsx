@@ -17,8 +17,9 @@ export default function SuperAdminSidebar() {
       <div className={styles.brand}>AGENDAAE Admin</div>
       <nav className={styles.nav}>
         <Link href="/" className={styles.navLink}>Dashboard</Link>
+        <Link href="/empresas" className={styles.navLink}>Empresas</Link>
         <Link href="/planos" className={styles.navLink}>Planos</Link>
-        <Link href="/licencas" className={styles.navLink}>Empresas / Licenças</Link>
+        <Link href="/licencas" className={styles.navLink}>Licenças</Link>
       </nav>
     </aside>
   );

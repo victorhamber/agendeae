@@ -1,62 +1,36 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getSessionCookieName, verifySession } from '@/lib/auth/session';
+import { getSessionCookieName } from '@/lib/auth/session';
 
 export async function middleware(request: NextRequest) {
   const url = request.nextUrl;
-  
   const hostname = request.headers.get('host') || '';
 
-  // Ignorar arquivos estáticos, _next e API routes
+  // 1. Ignorar arquivos estáticos, _next e API routes
   if (url.pathname.startsWith('/_next') || url.pathname.startsWith('/api') || url.pathname.includes('.')) {
     return NextResponse.next();
   }
 
-  // Ignorar Server Actions (Next.js envia como POST para a mesma rota)
+  // 2. Ignorar Server Actions
   if (request.method === 'POST') {
     return NextResponse.next();
   }
 
   // ─────────────────────────────────────────────
-  // 1. SUPER ADMIN: adm.agendeae.com.br
+  // 3. SUPER ADMIN: adm.agendeae.com.br
   // ─────────────────────────────────────────────
   if (hostname.startsWith('adm.')) {
-    const token = request.cookies.get(getSessionCookieName())?.value;
-    if (!token && url.pathname !== '/login') return NextResponse.redirect(new URL('/login', request.url));
-
-    if (token) {
-      try {
-        const session = await verifySession(token);
-        if (session.role !== 'SUPER_ADMIN' && url.pathname !== '/login') {
-          return NextResponse.redirect(new URL('/login', request.url));
-        }
-      } catch {
-        if (url.pathname !== '/login') return NextResponse.redirect(new URL('/login', request.url));
-      }
-    }
     if (url.pathname === '/') {
       return NextResponse.rewrite(new URL('/super-admin', request.url));
     }
+    // Se não estiver logado e não for a tela de login, o requireSuperAdminSession na página vai cuidar disso
     return NextResponse.rewrite(new URL(`/super-admin${url.pathname}`, request.url));
   }
 
   // ─────────────────────────────────────────────
-  // 2. ADMIN / PROFISSIONAL: app.agendeae.com.br
-  //    100% bloqueado — exige login em TODAS as rotas
+  // 4. ADMIN / PROFISSIONAL: app.agendeae.com.br
   // ─────────────────────────────────────────────
   if (hostname.startsWith('app.')) {
-    const token = request.cookies.get(getSessionCookieName())?.value;
-    if (!token && url.pathname !== '/login') return NextResponse.redirect(new URL('/login', request.url));
-    if (token) {
-      try {
-        const session = await verifySession(token);
-        if ((session.role === 'SUPER_ADMIN' || !session.companyId) && url.pathname !== '/login') {
-          return NextResponse.redirect(new URL('/login', request.url));
-        }
-      } catch {
-        if (url.pathname !== '/login') return NextResponse.redirect(new URL('/login', request.url));
-      }
-    }
     if (url.pathname === '/') {
       return NextResponse.rewrite(new URL('/app', request.url));
     }
@@ -64,29 +38,23 @@ export async function middleware(request: NextRequest) {
   }
 
   // ─────────────────────────────────────────────
-  // 3. DOMÍNIO PRINCIPAL: agendeae.com.br
-  //    Aqui ficam APENAS as páginas PÚBLICAS de agendamento
+  // 5. DOMÍNIO PRINCIPAL: agendeae.com.br (Páginas Públicas)
   // ─────────────────────────────────────────────
-
-  // Bloquear qualquer acesso direto a /app ou /super-admin pelo domínio principal
+  
+  // Bloquear acesso direto a pastas internas pelo domínio principal
   if (url.pathname.startsWith('/app') || url.pathname.startsWith('/super-admin')) {
-    // Redirecionar para o subdomínio correto
     const baseDomain = hostname.replace('www.', '');
-    if (url.pathname.startsWith('/super-admin')) {
-      return NextResponse.redirect(new URL('/login', `http://adm.${baseDomain}`));
-    }
-    return NextResponse.redirect(new URL('/login', `http://app.${baseDomain}`));
+    const sub = url.pathname.startsWith('/super-admin') ? 'adm' : 'app';
+    return NextResponse.redirect(new URL('/login', `https://${sub}.${baseDomain}`));
   }
 
-  // Raiz do domínio principal → redirect para login do painel
+  // Raiz do domínio principal redireciona para o login do app
   if (url.pathname === '/') {
     const baseDomain = hostname.replace('www.', '');
-    return NextResponse.redirect(new URL('/login', `http://app.${baseDomain}`));
+    return NextResponse.redirect(new URL('/login', `https://app.${baseDomain}`));
   }
 
-  // Qualquer outro caminho no domínio principal (ex: /joaobarbeiro)
-  // → Rewrite para /agenda/joaobarbeiro (página pública de agendamento)
-  // Exceto se já começa com /agenda (acesso direto)
+  // Rewrite para página pública de agendamento
   if (!url.pathname.startsWith('/agenda')) {
     return NextResponse.rewrite(new URL(`/agenda${url.pathname}`, request.url));
   }

@@ -3,26 +3,63 @@
 import { prisma } from '@/lib/prisma';
 import { requireSuperAdminSession } from '@/lib/auth/server';
 import { revalidatePath } from 'next/cache';
+import bcrypt from 'bcryptjs';
 
 export async function createLicense(formData: FormData) {
   await requireSuperAdminSession();
 
-  const companyId = String(formData.get('companyId'));
+  const customerName = String(formData.get('customerName')).trim();
+  const customerEmail = String(formData.get('customerEmail')).trim().toLowerCase();
+  const customerPassword = String(formData.get('customerPassword'));
+
   const planId = String(formData.get('planId'));
   const status = String(formData.get('status') || 'ACTIVE');
   const startsAt = new Date(String(formData.get('startsAt')));
   const expiresAtStr = String(formData.get('expiresAt') || '');
   const trialEndsAtStr = String(formData.get('trialEndsAt') || '');
 
-  await prisma.license.create({
-    data: {
-      companyId,
-      planId,
-      status,
-      startsAt,
-      expiresAt: expiresAtStr ? new Date(expiresAtStr) : null,
-      trialEndsAt: trialEndsAtStr ? new Date(trialEndsAtStr) : null,
-    },
+  if (!customerName || !customerEmail || !customerPassword || !planId) {
+    throw new Error('Preencha os dados do cliente e selecione um plano.');
+  }
+
+  const existingUser = await prisma.user.findUnique({ where: { email: customerEmail } });
+  if (existingUser) {
+    throw new Error('E-mail já está em uso por outro usuário.');
+  }
+
+  const passwordHash = await bcrypt.hash(customerPassword, 10);
+  const tempSlug = `empresa-${Date.now()}`;
+
+  await prisma.$transaction(async (tx) => {
+    const user = await tx.user.create({
+      data: {
+        name: customerName,
+        email: customerEmail,
+        passwordHash,
+        role: 'COMPANY_ADMIN',
+        status: 'ACTIVE',
+      }
+    });
+
+    const company = await tx.company.create({
+      data: {
+        name: `Empresa de ${customerName}`,
+        slug: tempSlug,
+        ownerId: user.id,
+        status: 'ACTIVE',
+      }
+    });
+
+    await tx.license.create({
+      data: {
+        companyId: company.id,
+        planId,
+        status,
+        startsAt,
+        expiresAt: expiresAtStr ? new Date(expiresAtStr) : null,
+        trialEndsAt: trialEndsAtStr ? new Date(trialEndsAtStr) : null,
+      },
+    });
   });
 
   revalidatePath('/licencas');

@@ -27,15 +27,6 @@ export default async function LicencasPage() {
     },
   });
 
-  const companiesQuery = await prisma.company.findMany({
-    select: { id: true, name: true, slug: true, owner: { select: { name: true } } },
-    orderBy: { createdAt: 'desc' },
-  });
-
-  const companies = companiesQuery.map(c => ({
-    id: c.id,
-    name: c.owner ? `${c.owner.name} (${c.slug})` : c.name
-  }));
 
   const plans = await prisma.plan.findMany({
     where: { status: 'ACTIVE' },
@@ -51,7 +42,7 @@ export default async function LicencasPage() {
 
       <div className="glass" style={{ padding: '2rem', borderRadius: 'var(--radius)', marginBottom: '2rem' }}>
         <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>Nova Licença</h2>
-        <NewLicenseForm companies={companies} plans={plans} />
+        <NewLicenseForm plans={plans} />
       </div>
 
       <div className="glass" style={{ borderRadius: 'var(--radius)', overflow: 'hidden' }}>

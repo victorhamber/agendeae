@@ -6,6 +6,7 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { signSession, getSessionCookieName } from '@/lib/auth/session';
 import type { SessionPayload, UserRole } from '@/lib/auth/types';
+import { isRedirectError } from 'next/dist/client/components/redirect';
 
 function normalizeRole(role: string): UserRole {
   if (role === 'SUPER_ADMIN' || role === 'COMPANY_ADMIN' || role === 'PROFESSIONAL') return role;
@@ -84,7 +85,7 @@ export async function loginTenant(prevState: LoginState, formData: FormData): Pr
     // Redirecionar direto pelo servidor
     redirect('/');
   } catch (error: any) {
-    if (error.message === 'NEXT_REDIRECT') throw error;
+    if (isRedirectError(error)) throw error;
     console.error('Login error:', error);
     return { error: error.message || 'Erro ao realizar login' };
   }
@@ -136,7 +137,7 @@ export async function loginSuperAdmin(prevState: LoginState, formData: FormData)
 
     redirect('/');
   } catch (error: any) {
-    if (error.message === 'NEXT_REDIRECT') throw error;
+    if (isRedirectError(error)) throw error;
     console.error('Super Admin login error:', error);
     return { error: error.message || 'Erro ao realizar login' };
   }

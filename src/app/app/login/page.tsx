@@ -6,8 +6,11 @@ import { loginTenant } from '@/app/actions/auth';
 export default function TenantLogin() {
   const [state, action, isPending] = useActionState(loginTenant, null);
 
-
-
+  useEffect(() => {
+    if (state?.success) {
+      window.location.href = '/';
+    }
+  }, [state?.success]);
   return (
     <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--background)' }}>
       <div className="glass" style={{ padding: '2rem', borderRadius: 'var(--radius)', width: '100%', maxWidth: '400px', textAlign: 'center' }}>

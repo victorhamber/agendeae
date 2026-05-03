@@ -81,8 +81,8 @@ export async function loginTenant(prevState: LoginState, formData: FormData): Pr
     cookieStore.delete('mockRole');
     cookieStore.delete('mockProfessionalId');
 
-    // Redirecionar direto pelo servidor
-    redirect('/');
+    // Redirecionar será feito pelo cliente
+    return { success: true };
   } catch (error: any) {
     if (error.digest?.startsWith('NEXT_REDIRECT')) throw error;
     console.error('Login error:', error);
@@ -134,7 +134,7 @@ export async function loginSuperAdmin(prevState: LoginState, formData: FormData)
     cookieStore.delete('mockRole');
     cookieStore.delete('mockProfessionalId');
 
-    redirect('/');
+    return { success: true };
   } catch (error: any) {
     if (error.digest?.startsWith('NEXT_REDIRECT')) throw error;
     console.error('Super Admin login error:', error);

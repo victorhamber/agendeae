@@ -7,16 +7,27 @@ type Plan = { id: string; name: string; priceMonthly: number };
 
 export default function NewLicenseForm({ plans }: { plans: Plan[] }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
+    setSuccess(false);
+
     try {
       const formData = new FormData(e.currentTarget);
-      await createLicense(formData);
-      (e.target as HTMLFormElement).reset();
-    } catch (error) {
-      alert(error instanceof Error ? error.message : 'Erro');
+      const result = await createLicense(formData);
+      
+      if (result?.success) {
+        setSuccess(true);
+        (e.target as HTMLFormElement).reset();
+        // Limpar mensagem de sucesso após 5 segundos
+        setTimeout(() => setSuccess(false), 5000);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Ocorreu um erro ao criar a licença.');
     } finally {
       setIsSubmitting(false);
     }
@@ -25,6 +36,19 @@ export default function NewLicenseForm({ plans }: { plans: Plan[] }) {
   return (
     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       
+      {/* Mensagens de Feedback */}
+      {error && (
+        <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', padding: '1rem', borderRadius: 'var(--radius)', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+          <strong>Erro:</strong> {error}
+        </div>
+      )}
+
+      {success && (
+        <div style={{ backgroundColor: 'rgba(34, 197, 94, 0.1)', color: 'var(--success)', padding: '1rem', borderRadius: 'var(--radius)', border: '1px solid rgba(34, 197, 94, 0.2)' }}>
+          ✅ Licença e acesso criados com sucesso!
+        </div>
+      )}
+
       <div>
         <h3 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '1rem' }}>1. Dados do Cliente (Acesso)</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>

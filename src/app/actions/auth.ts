@@ -34,74 +34,109 @@ async function buildSessionForUser(userId: string, role: UserRole): Promise<Sess
   return { sub: userId, role, companyId: company.id };
 }
 
-export async function loginTenant(formData: FormData) {
+export type LoginState = { error?: string; success?: boolean } | null;
+
+export async function loginTenant(prevState: LoginState, formData: FormData): Promise<LoginState> {
   const email = String(formData.get('email') || '').trim().toLowerCase();
   const password = String(formData.get('password') || '');
-  if (!email || !password) throw new Error('Informe e-mail e senha');
+  
+  if (!email || !password) {
+    return { error: 'Informe e-mail e senha' };
+  }
 
-  const user = await prisma.user.findUnique({
-    where: { email },
-    select: { id: true, passwordHash: true, role: true, status: true },
-  });
-  if (!user || user.status !== 'ACTIVE') throw new Error('Credenciais inválidas');
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true, passwordHash: true, role: true, status: true },
+    });
 
-  const ok = await bcrypt.compare(password, user.passwordHash);
-  if (!ok) throw new Error('Credenciais inválidas');
+    if (!user || user.status !== 'ACTIVE') {
+      return { error: 'Credenciais inválidas' };
+    }
 
-  const role = normalizeRole(user.role);
-  if (role === 'SUPER_ADMIN') throw new Error('Use o login do Super Admin');
+    const ok = await bcrypt.compare(password, user.passwordHash);
+    if (!ok) {
+      return { error: 'Credenciais inválidas' };
+    }
 
-  const sessionPayload = await buildSessionForUser(user.id, role);
-  const token = await signSession(sessionPayload, '7d');
+    const role = normalizeRole(user.role);
+    if (role === 'SUPER_ADMIN') {
+      return { error: 'Use o login do Super Admin' };
+    }
 
-  const cookieStore = await cookies();
-  cookieStore.set(getSessionCookieName(), token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 60 * 60 * 24 * 7,
-  });
+    const sessionPayload = await buildSessionForUser(user.id, role);
+    const token = await signSession(sessionPayload, '7d');
 
-  // compat: remove cookies antigas
-  cookieStore.delete('auth_token');
-  cookieStore.delete('mockRole');
-  cookieStore.delete('mockProfessionalId');
+    const cookieStore = await cookies();
+    cookieStore.set(getSessionCookieName(), token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
+    });
+
+    // compat: remove cookies antigas
+    cookieStore.delete('auth_token');
+    cookieStore.delete('mockRole');
+    cookieStore.delete('mockProfessionalId');
+
+  } catch (error: any) {
+    console.error('Login error:', error);
+    return { error: error.message || 'Erro ao realizar login' };
+  }
 
   redirect('/');
 }
 
-export async function loginSuperAdmin(formData: FormData) {
+export async function loginSuperAdmin(prevState: LoginState, formData: FormData): Promise<LoginState> {
   const email = String(formData.get('email') || '').trim().toLowerCase();
   const password = String(formData.get('password') || '');
-  if (!email || !password) throw new Error('Informe e-mail e senha');
+  
+  if (!email || !password) {
+    return { error: 'Informe e-mail e senha' };
+  }
 
-  const user = await prisma.user.findUnique({
-    where: { email },
-    select: { id: true, passwordHash: true, role: true, status: true },
-  });
-  if (!user || user.status !== 'ACTIVE') throw new Error('Credenciais inválidas');
-  const role = normalizeRole(user.role);
-  if (role !== 'SUPER_ADMIN') throw new Error('Sem permissão');
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true, passwordHash: true, role: true, status: true },
+    });
 
-  const ok = await bcrypt.compare(password, user.passwordHash);
-  if (!ok) throw new Error('Credenciais inválidas');
+    if (!user || user.status !== 'ACTIVE') {
+      return { error: 'Credenciais inválidas' };
+    }
+    
+    const role = normalizeRole(user.role);
+    if (role !== 'SUPER_ADMIN') {
+      return { error: 'Sem permissão' };
+    }
 
-  const sessionPayload = await buildSessionForUser(user.id, role);
-  const token = await signSession(sessionPayload, '7d');
+    const ok = await bcrypt.compare(password, user.passwordHash);
+    if (!ok) {
+      return { error: 'Credenciais inválidas' };
+    }
 
-  const cookieStore = await cookies();
-  cookieStore.set(getSessionCookieName(), token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 60 * 60 * 24 * 7,
-  });
+    const sessionPayload = await buildSessionForUser(user.id, role);
+    const token = await signSession(sessionPayload, '7d');
 
-  cookieStore.delete('auth_token');
-  cookieStore.delete('mockRole');
-  cookieStore.delete('mockProfessionalId');
+    const cookieStore = await cookies();
+    cookieStore.set(getSessionCookieName(), token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7,
+    });
+
+    cookieStore.delete('auth_token');
+    cookieStore.delete('mockRole');
+    cookieStore.delete('mockProfessionalId');
+
+  } catch (error: any) {
+    console.error('Super Admin login error:', error);
+    return { error: error.message || 'Erro ao realizar login' };
+  }
 
   redirect('/');
 }

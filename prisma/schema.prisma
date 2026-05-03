@@ -44,6 +44,7 @@ model Company {
   professionals   Professional[]
   customers       Customer[]
   appointments    Appointment[]
+  bookingRules    BookingRule?
 }
 
 model Plan {
@@ -211,3 +212,20 @@ model Appointment {
   professional        Professional @relation(fields: [professionalId], references: [id])
   service             Service      @relation(fields: [serviceId], references: [id])
 }
+
+model BookingRule {
+  id                        String    @id @default(cuid())
+  companyId                 String    @unique
+  minAdvanceHours           Int       @default(1)     // Mínimo de antecedência (horas)
+  maxAdvanceDays            Int       @default(60)    // Máximo de antecedência (dias)
+  allowCancellation         Boolean   @default(true)
+  cancellationDeadlineHours Int       @default(6)     // Prazo para cancelar (horas antes)
+  allowReschedule           Boolean   @default(true)
+  rescheduleDeadlineHours   Int       @default(12)    // Prazo para reagendar (horas antes)
+  allowAnyProfessional      Boolean   @default(true)  // "Qualquer profissional"
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime  @updatedAt
+
+  company                   Company   @relation(fields: [companyId], references: [id])
+}
+

@@ -40,6 +40,32 @@ export async function createAppointment(data: {
     select: { id: true },
   });
   if (!professional) throw new Error('Profissional inválido');
+
+  const bookingRules = await prisma.bookingRule.findUnique({
+    where: { companyId: data.companyId }
+  });
+  const minAdvanceHours = bookingRules?.minAdvanceHours ?? 1;
+  const maxAdvanceDays = bookingRules?.maxAdvanceDays ?? 60;
+
+  const now = new Date();
+  
+  // Verify max advance days
+  const maxDate = new Date(now);
+  maxDate.setDate(now.getDate() + maxAdvanceDays);
+  maxDate.setHours(23, 59, 59, 999);
+  if (date > maxDate) {
+    throw new Error(`Só é possível agendar com até ${maxAdvanceDays} dias de antecedência`);
+  }
+
+  // Verify min advance hours
+  const appointmentTime = new Date(date);
+  const [hours, minutes] = data.startTime.split(':').map(Number);
+  appointmentTime.setHours(hours, minutes, 0, 0);
+  
+  const minAdvanceMs = minAdvanceHours * 60 * 60 * 1000;
+  if (appointmentTime.getTime() - now.getTime() < minAdvanceMs) {
+    throw new Error(`É necessário agendar com pelo menos ${minAdvanceHours}h de antecedência`);
+  }
   
   // Buscar todos os serviços selecionados
   const services: Array<{ id: string; name: string; durationMinutes: number; price: number }> =

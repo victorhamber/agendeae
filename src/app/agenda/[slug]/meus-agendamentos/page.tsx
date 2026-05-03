@@ -35,7 +35,7 @@ export default async function MeusAgendamentosPage({ params }: { params: Promise
         
         <div className={styles.bottomSheet}>
           <div className={styles.headerInfo} style={{ marginBottom: '1.5rem' }}>
-            <Link href={`/agenda/${slug}`} style={{ color: 'var(--company-primary)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: 500, marginBottom: '1rem', display: 'inline-block' }}>
+            <Link href={`/${slug}`} style={{ color: 'var(--company-primary)', fontSize: '0.875rem', textDecoration: 'none', fontWeight: 500, marginBottom: '1rem', display: 'inline-block' }}>
               ← Voltar para agendamento
             </Link>
             <h1 className={styles.companyName}>Meus Agendamentos</h1>

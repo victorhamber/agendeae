@@ -41,12 +41,20 @@ export default function BookingFlow({
   services, 
   professionals,
   companyId,
-  companyWhatsapp
+  companyWhatsapp,
+  companySlug,
+  allowAnyProfessional = true,
+  allowCancellation = true,
+  maxAdvanceDays = 60,
 }: { 
   services: Service[], 
   professionals: Professional[],
   companyId: string,
-  companyWhatsapp: string
+  companyWhatsapp: string,
+  companySlug: string,
+  allowAnyProfessional?: boolean,
+  allowCancellation?: boolean,
+  maxAdvanceDays?: number,
 }) {
   const [selectedProfessional, setSelectedProfessional] = useState<Professional | null>(null);
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
@@ -68,8 +76,8 @@ export default function BookingFlow({
     services: string; date: string; time: string; professional: string; total: string;
   } | null>(null);
 
-  // Datas expandidas para 1 ano inteiro (365 dias)
-  const [dates] = useState(() => getNextDays(365));
+  // Datas expandidas até o limite permitido pela empresa
+  const [dates] = useState(() => getNextDays(maxAdvanceDays));
   const [visibleMonth, setVisibleMonth] = useState(`${monthNames[dates[0].getMonth()]} ${dates[0].getFullYear()}`);
 
   // Lógica de Scroll com Mouse (Arrastar)
@@ -285,11 +293,32 @@ export default function BookingFlow({
             color: '#fff',
             fontWeight: 600,
             fontSize: '1rem',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            marginBottom: '0.75rem'
           }}
         >
           Fazer Novo Agendamento
         </button>
+
+        <a
+          href={`/${companySlug}/meus-agendamentos`}
+          style={{
+            display: 'block',
+            width: '100%',
+            padding: '1rem',
+            borderRadius: '12px',
+            border: '1px solid #27272A',
+            backgroundColor: '#18181B',
+            color: '#fff',
+            fontWeight: 600,
+            fontSize: '0.875rem',
+            cursor: 'pointer',
+            textDecoration: 'none',
+            textAlign: 'center'
+          }}
+        >
+          📅 Ver Meus Agendamentos
+        </a>
       </div>
     );
   }
@@ -440,6 +469,26 @@ export default function BookingFlow({
 
           <h2 className={styles.sectionTitle}>ESCOLHA O PROFISSIONAL</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1rem' }}>
+            {/* Opção "Qualquer Profissional" */}
+            {allowAnyProfessional && (
+              <div 
+                className={styles.profCard}
+                onClick={() => {
+                  // Pick a random professional for "any" — the backend will validate availability
+                  const randomProf = professionals[Math.floor(Math.random() * professionals.length)];
+                  setSelectedProfessional({ ...randomProf, name: 'Qualquer Disponível' });
+                  setStep('DATETIME');
+                }}
+                style={{ cursor: 'pointer', borderColor: 'var(--company-primary)', borderWidth: '1px', borderStyle: 'dashed' }}
+              >
+                <div style={{ 
+                  width: '64px', height: '64px', borderRadius: '50%', backgroundColor: '#27272A', margin: '0 auto 1rem',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem'
+                }}>🔀</div>
+                <h3 style={{ fontSize: '0.875rem', fontWeight: 700, margin: '0 0 0.25rem 0' }}>Qualquer</h3>
+                <p style={{ fontSize: '0.75rem', color: '#A1A1AA', margin: '0 0 0.25rem 0' }}>Disponível</p>
+              </div>
+            )}
             {professionals.map(prof => (
               <div 
                 key={prof.id} 

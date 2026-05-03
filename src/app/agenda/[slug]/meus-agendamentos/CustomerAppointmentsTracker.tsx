@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { findCustomerAppointments } from '../../../actions/appointments';
+import { cancelAppointmentByCustomer } from '../../../actions/bookingRules';
 import type { Appointment, Professional, Service } from '@prisma/client';
 
 type AppointmentRow = Appointment & {
@@ -15,6 +16,7 @@ export default function CustomerAppointmentsTracker({ companySlug }: { companySl
   const [appointments, setAppointments] = useState<AppointmentRow[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,14 +36,36 @@ export default function CustomerAppointmentsTracker({ companySlug }: { companySl
     }
   };
 
+  const handleCancel = async (appointmentId: string) => {
+    if (!confirm('Tem certeza que deseja cancelar este agendamento?')) return;
+    
+    setCancellingId(appointmentId);
+    try {
+      await cancelAppointmentByCustomer(appointmentId, phone);
+      // Refresh the list
+      const results = await findCustomerAppointments(companySlug, phone);
+      setAppointments(results);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erro ao cancelar';
+      alert(message);
+    } finally {
+      setCancellingId(null);
+    }
+  };
+
   const formatStatus = (status: string) => {
     switch(status) {
       case 'PENDING': return { label: 'Agendado', color: 'var(--company-primary)' };
+      case 'CONFIRMED': return { label: 'Confirmado', color: '#22c55e' };
       case 'COMPLETED': return { label: 'Concluído', color: '#22c55e' };
       case 'CANCELLED': return { label: 'Cancelado', color: '#ef4444' };
       case 'NO_SHOW': return { label: 'Faltou', color: '#f97316' };
       default: return { label: status, color: '#A1A1AA' };
     }
+  };
+
+  const isCancellable = (app: AppointmentRow) => {
+    return app.status === 'CONFIRMED' || app.status === 'PENDING';
   };
 
   return (
@@ -124,6 +148,8 @@ export default function CustomerAppointmentsTracker({ companySlug }: { companySl
               {appointments.map((app) => {
                 const statusInfo = formatStatus(app.status);
                 const appDate = new Date(app.date);
+                const cancellable = isCancellable(app);
+                const isCancelling = cancellingId === app.id;
                 return (
                   <div key={app.id} style={{ 
                     padding: '1.25rem', 
@@ -160,7 +186,34 @@ export default function CustomerAppointmentsTracker({ companySlug }: { companySl
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#FFF', fontSize: '0.875rem', marginTop: '0.25rem' }}>
                       <span style={{ color: 'var(--company-primary)' }}>📅</span>
                       {appDate.toLocaleDateString('pt-BR')} às {app.startTime}
+                      {app.totalPrice != null && (
+                        <span style={{ marginLeft: 'auto', color: '#22c55e', fontWeight: 600 }}>
+                          R$ {app.totalPrice.toFixed(2).replace('.', ',')}
+                        </span>
+                      )}
                     </div>
+
+                    {/* Botão Cancelar */}
+                    {cancellable && (
+                      <button
+                        onClick={() => handleCancel(app.id)}
+                        disabled={isCancelling}
+                        style={{
+                          marginTop: '0.25rem',
+                          padding: '0.75rem',
+                          borderRadius: '0.5rem',
+                          border: '1px solid #ef4444',
+                          backgroundColor: 'transparent',
+                          color: '#ef4444',
+                          fontWeight: 600,
+                          fontSize: '0.875rem',
+                          cursor: isCancelling ? 'not-allowed' : 'pointer',
+                          opacity: isCancelling ? 0.6 : 1,
+                        }}
+                      >
+                        {isCancelling ? 'Cancelando...' : '✕ Cancelar Agendamento'}
+                      </button>
+                    )}
                   </div>
                 );
               })}

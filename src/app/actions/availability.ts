@@ -26,6 +26,15 @@ export async function getAvailableTimeSlots(
   const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, etc.
 
   // 1. Fetch Availability config for this day
+  const professional = await prisma.professional.findUnique({
+    where: { id: professionalId },
+    select: { id: true, companyId: true },
+  });
+
+  if (!professional) {
+    return [];
+  }
+
   const availability = await prisma.availability.findFirst({
     where: {
       professionalId,
@@ -70,8 +79,26 @@ export async function getAvailableTimeSlots(
   });
 
   // 4. Calculate minimum time — prevent booking in the past or too close
+  const company = await prisma.company.findUnique({
+    where: { id: professional.companyId },
+    include: { bookingRules: true }
+  });
+  
+  const rules = company?.bookingRules;
+  const minAdvanceHours = rules?.minAdvanceHours ?? 1;
+  const maxAdvanceDays = rules?.maxAdvanceDays ?? 60;
+
   const now = new Date();
-  const MIN_ADVANCE_MINUTES = 60; // 1 hora de antecedência mínima
+  
+  // Verify max advance days
+  const maxDate = new Date(now);
+  maxDate.setDate(now.getDate() + maxAdvanceDays);
+  maxDate.setHours(23, 59, 59, 999);
+  if (date > maxDate) {
+    return []; // Beyond max advance limit
+  }
+
+  const MIN_ADVANCE_MINUTES = minAdvanceHours * 60;
   const isToday = date.toDateString() === now.toDateString();
   const currentMinOfDay = isToday ? (now.getHours() * 60 + now.getMinutes() + MIN_ADVANCE_MINUTES) : 0;
 

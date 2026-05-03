@@ -13,7 +13,8 @@ export default async function AgendaPage({ params }: { params: Promise<{ slug: s
     where: { slug },
     include: {
       services: { where: { status: 'ACTIVE' } },
-      professionals: { where: { status: 'ACTIVE' } }
+      professionals: { where: { status: 'ACTIVE' } },
+      bookingRules: true,
     }
   });
 
@@ -85,11 +86,15 @@ export default async function AgendaPage({ params }: { params: Promise<{ slug: s
             professionals={company.professionals} 
             companyId={company.id}
             companyWhatsapp={company.whatsapp || ''}
+            companySlug={slug}
+            allowAnyProfessional={company.bookingRules?.allowAnyProfessional ?? true}
+            allowCancellation={company.bookingRules?.allowCancellation ?? true}
+            maxAdvanceDays={company.bookingRules?.maxAdvanceDays ?? 60}
           />
 
           <div style={{ marginTop: '2.5rem', padding: '0 1.5rem 2rem 1.5rem' }}>
             <Link 
-              href={`/agenda/${slug}/meus-agendamentos`} 
+              href={`/${slug}/meus-agendamentos`} 
               style={{ 
                 display: 'flex', 
                 alignItems: 'center', 

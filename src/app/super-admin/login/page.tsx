@@ -1,10 +1,16 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useEffect } from 'react';
 import { loginSuperAdmin } from '@/app/actions/auth';
 
 export default function SuperAdminLogin() {
   const [state, action, isPending] = useActionState(loginSuperAdmin, null);
+
+  useEffect(() => {
+    if (state?.success) {
+      window.location.href = '/';
+    }
+  }, [state?.success]);
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', backgroundColor: '#050505' }}>

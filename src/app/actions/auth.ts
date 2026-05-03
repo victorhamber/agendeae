@@ -86,7 +86,7 @@ export async function loginTenant(prevState: LoginState, formData: FormData): Pr
     return { error: error.message || 'Erro ao realizar login' };
   }
 
-  redirect('/');
+  return { success: true };
 }
 
 export async function loginSuperAdmin(prevState: LoginState, formData: FormData): Promise<LoginState> {
@@ -138,7 +138,7 @@ export async function loginSuperAdmin(prevState: LoginState, formData: FormData)
     return { error: error.message || 'Erro ao realizar login' };
   }
 
-  redirect('/');
+  return { success: true };
 }
 
 export async function logout() {

@@ -27,7 +27,7 @@ export default function NewLicenseForm({ companies, plans }: { companies: Compan
     <form onSubmit={handleSubmit}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
         <div>
-          <label style={{ display: 'block', fontWeight: 500, marginBottom: '0.25rem', fontSize: '0.875rem' }}>Empresa</label>
+          <label style={{ display: 'block', fontWeight: 500, marginBottom: '0.25rem', fontSize: '0.875rem' }}>Cliente / Empresa</label>
           <select name="companyId" className="input" required>
             <option value="">Selecione...</option>
             {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}

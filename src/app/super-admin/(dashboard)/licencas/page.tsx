@@ -22,15 +22,20 @@ export default async function LicencasPage() {
   const licenses = await prisma.license.findMany({
     orderBy: { createdAt: 'desc' },
     include: {
-      company: { select: { name: true, slug: true, status: true } },
+      company: { select: { name: true, slug: true, status: true, owner: { select: { name: true, email: true } } } },
       plan: { select: { name: true, priceMonthly: true } },
     },
   });
 
-  const companies = await prisma.company.findMany({
-    select: { id: true, name: true },
-    orderBy: { name: 'asc' },
+  const companiesQuery = await prisma.company.findMany({
+    select: { id: true, name: true, slug: true, owner: { select: { name: true } } },
+    orderBy: { createdAt: 'desc' },
   });
+
+  const companies = companiesQuery.map(c => ({
+    id: c.id,
+    name: c.owner ? `${c.owner.name} (${c.slug})` : c.name
+  }));
 
   const plans = await prisma.plan.findMany({
     where: { status: 'ACTIVE' },
@@ -54,7 +59,7 @@ export default async function LicencasPage() {
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)', backgroundColor: 'rgba(0,0,0,0.02)' }}>
-                <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 500, color: 'var(--muted)' }}>Empresa</th>
+                <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 500, color: 'var(--muted)' }}>Cliente / Empresa</th>
                 <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 500, color: 'var(--muted)' }}>Plano</th>
                 <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 500, color: 'var(--muted)' }}>Status</th>
                 <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 500, color: 'var(--muted)' }}>Início</th>
@@ -76,8 +81,10 @@ export default async function LicencasPage() {
                   return (
                     <tr key={license.id} style={{ borderBottom: '1px solid var(--border)' }}>
                       <td style={{ padding: '1rem' }}>
-                        <div style={{ fontWeight: 600 }}>{license.company.name}</div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>/{license.company.slug}</div>
+                        <div style={{ fontWeight: 600 }}>{license.company.owner?.name || license.company.name}</div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
+                          {license.company.owner?.email || `/${license.company.slug}`}
+                        </div>
                       </td>
                       <td style={{ padding: '1rem' }}>
                         <span style={{ fontWeight: 500 }}>{license.plan.name}</span>

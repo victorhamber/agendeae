@@ -23,11 +23,12 @@ export default function NewLicenseForm({ plans }: { plans: Plan[] }) {
       if (result?.success) {
         setSuccess(true);
         (e.target as HTMLFormElement).reset();
-        // Limpar mensagem de sucesso após 5 segundos
         setTimeout(() => setSuccess(false), 5000);
+      } else if (result?.error) {
+        setError(result.error);
       }
     } catch (err: any) {
-      setError(err.message || 'Ocorreu um erro ao criar a licença.');
+      setError('Erro de conexão ou erro interno no servidor.');
     } finally {
       setIsSubmitting(false);
     }

@@ -6,139 +6,163 @@ import { revalidatePath } from 'next/cache';
 import bcrypt from 'bcryptjs';
 
 export async function createLicense(formData: FormData) {
-  await requireSuperAdminSession();
+  try {
+    await requireSuperAdminSession();
 
-  const customerName = String(formData.get('customerName')).trim();
-  const customerEmail = String(formData.get('customerEmail')).trim().toLowerCase();
-  const customerPassword = String(formData.get('customerPassword'));
+    const customerName = String(formData.get('customerName') || '').trim();
+    const customerEmail = String(formData.get('customerEmail') || '').trim().toLowerCase();
+    const customerPassword = String(formData.get('customerPassword') || '');
 
-  const planId = String(formData.get('planId'));
-  const status = String(formData.get('status') || 'ACTIVE');
-  const startsAt = new Date(String(formData.get('startsAt')));
-  const expiresAtStr = String(formData.get('expiresAt') || '');
-  const trialEndsAtStr = String(formData.get('trialEndsAt') || '');
+    const planId = String(formData.get('planId') || '');
+    const status = String(formData.get('status') || 'ACTIVE');
+    const startsAtStr = String(formData.get('startsAt') || '');
+    const expiresAtStr = String(formData.get('expiresAt') || '');
+    const trialEndsAtStr = String(formData.get('trialEndsAt') || '');
 
-  if (!customerName || !customerEmail || !customerPassword || !planId) {
-    throw new Error('Preencha os dados do cliente e selecione um plano.');
+    if (!customerName || !customerEmail || !customerPassword || !planId || !startsAtStr) {
+      return { success: false, error: 'Preencha todos os campos obrigatórios.' };
+    }
+
+    const startsAt = new Date(startsAtStr);
+    if (isNaN(startsAt.getTime())) {
+      return { success: false, error: 'Data de início inválida.' };
+    }
+
+    const existingUser = await prisma.user.findUnique({ where: { email: customerEmail } });
+    if (existingUser) {
+      return { success: false, error: 'Este e-mail já está em uso por outro usuário.' };
+    }
+
+    const passwordHash = await bcrypt.hash(customerPassword, 10);
+    const tempSlug = `empresa-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
+    await prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          name: customerName,
+          email: customerEmail,
+          passwordHash,
+          role: 'COMPANY_ADMIN',
+          status: 'ACTIVE',
+        }
+      });
+
+      const company = await tx.company.create({
+        data: {
+          name: `Empresa de ${customerName}`,
+          slug: tempSlug,
+          ownerId: user.id,
+          status: 'ACTIVE',
+        }
+      });
+
+      await tx.license.create({
+        data: {
+          companyId: company.id,
+          planId,
+          status,
+          startsAt,
+          expiresAt: expiresAtStr ? new Date(expiresAtStr) : null,
+          trialEndsAt: trialEndsAtStr ? new Date(trialEndsAtStr) : null,
+        },
+      });
+    });
+
+    revalidatePath('/licencas');
+    return { success: true };
+
+  } catch (error: any) {
+    console.error('Erro ao criar licença:', error);
+    return { 
+      success: false, 
+      error: error.message || 'Erro interno no servidor ao processar a licença.' 
+    };
   }
-
-  const existingUser = await prisma.user.findUnique({ where: { email: customerEmail } });
-  if (existingUser) {
-    throw new Error('E-mail já está em uso por outro usuário.');
-  }
-
-  const passwordHash = await bcrypt.hash(customerPassword, 10);
-  const tempSlug = `empresa-${Date.now()}`;
-
-  await prisma.$transaction(async (tx) => {
-    const user = await tx.user.create({
-      data: {
-        name: customerName,
-        email: customerEmail,
-        passwordHash,
-        role: 'COMPANY_ADMIN',
-        status: 'ACTIVE',
-      }
-    });
-
-    const company = await tx.company.create({
-      data: {
-        name: `Empresa de ${customerName}`,
-        slug: tempSlug,
-        ownerId: user.id,
-        status: 'ACTIVE',
-      }
-    });
-
-    await tx.license.create({
-      data: {
-        companyId: company.id,
-        planId,
-        status,
-        startsAt,
-        expiresAt: expiresAtStr ? new Date(expiresAtStr) : null,
-        trialEndsAt: trialEndsAtStr ? new Date(trialEndsAtStr) : null,
-      },
-    });
-  });
-
-  revalidatePath('/licencas');
-  return { success: true };
 }
 
 export async function updateLicenseStatus(id: string, status: string) {
-  await requireSuperAdminSession();
+  try {
+    await requireSuperAdminSession();
 
-  await prisma.license.update({
-    where: { id },
-    data: { status },
-  });
+    await prisma.license.update({
+      where: { id },
+      data: { status },
+    });
 
-  // Se bloqueou a licença, bloquear a empresa também
-  if (status === 'BLOCKED' || status === 'CANCELLED') {
-    const license = await prisma.license.findUnique({ where: { id }, select: { companyId: true } });
-    if (license) {
-      await prisma.company.update({
-        where: { id: license.companyId },
-        data: { status: status === 'BLOCKED' ? 'BLOCKED' : 'CANCELLED' },
-      });
+    if (status === 'BLOCKED' || status === 'CANCELLED') {
+      const license = await prisma.license.findUnique({ where: { id }, select: { companyId: true } });
+      if (license) {
+        await prisma.company.update({
+          where: { id: license.companyId },
+          data: { status: status === 'BLOCKED' ? 'BLOCKED' : 'CANCELLED' },
+        });
+      }
     }
-  }
 
-  // Se ativou, ativar a empresa
-  if (status === 'ACTIVE') {
-    const license = await prisma.license.findUnique({ where: { id }, select: { companyId: true } });
-    if (license) {
-      await prisma.company.update({
-        where: { id: license.companyId },
-        data: { status: 'ACTIVE' },
-      });
+    if (status === 'ACTIVE') {
+      const license = await prisma.license.findUnique({ where: { id }, select: { companyId: true } });
+      if (license) {
+        await prisma.company.update({
+          where: { id: license.companyId },
+          data: { status: 'ACTIVE' },
+        });
+      }
     }
-  }
 
-  revalidatePath('/licencas');
-  return { success: true };
+    revalidatePath('/licencas');
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
 }
 
 export async function updateLicenseExpiry(id: string, expiresAt: string) {
-  await requireSuperAdminSession();
+  try {
+    await requireSuperAdminSession();
 
-  await prisma.license.update({
-    where: { id },
-    data: { expiresAt: expiresAt ? new Date(expiresAt) : null },
-  });
+    await prisma.license.update({
+      where: { id },
+      data: { expiresAt: expiresAt ? new Date(expiresAt) : null },
+    });
 
-  revalidatePath('/licencas');
-  return { success: true };
+    revalidatePath('/licencas');
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
 }
 
 export async function deleteLicense(id: string) {
-  await requireSuperAdminSession();
+  try {
+    await requireSuperAdminSession();
 
-  const license = await prisma.license.findUnique({
-    where: { id },
-    include: { company: true },
-  });
+    const license = await prisma.license.findUnique({
+      where: { id },
+      include: { company: true },
+    });
 
-  if (!license) throw new Error('Licença não encontrada.');
+    if (!license) return { success: false, error: 'Licença não encontrada.' };
 
-  const companyId = license.companyId;
-  const ownerId = license.company.ownerId;
+    const companyId = license.companyId;
+    const ownerId = license.company.ownerId;
 
-  await prisma.$transaction(async (tx) => {
-    await tx.appointment.deleteMany({ where: { companyId } });
-    await tx.bookingRule.deleteMany({ where: { companyId } });
-    await tx.professionalService.deleteMany({ where: { companyId } });
-    await tx.blockedTime.deleteMany({ where: { companyId } });
-    await tx.availability.deleteMany({ where: { companyId } });
-    await tx.professional.deleteMany({ where: { companyId } });
-    await tx.service.deleteMany({ where: { companyId } });
-    await tx.customer.deleteMany({ where: { companyId } });
-    await tx.license.delete({ where: { id } });
-    await tx.company.delete({ where: { id: companyId } });
-    await tx.user.delete({ where: { id: ownerId } });
-  });
+    await prisma.$transaction(async (tx) => {
+      await tx.appointment.deleteMany({ where: { companyId } });
+      await tx.bookingRule.deleteMany({ where: { companyId } });
+      await tx.professionalService.deleteMany({ where: { companyId } });
+      await tx.blockedTime.deleteMany({ where: { companyId } });
+      await tx.availability.deleteMany({ where: { companyId } });
+      await tx.professional.deleteMany({ where: { companyId } });
+      await tx.service.deleteMany({ where: { companyId } });
+      await tx.customer.deleteMany({ where: { companyId } });
+      await tx.license.delete({ where: { id } });
+      await tx.company.delete({ where: { id: companyId } });
+      await tx.user.delete({ where: { id: ownerId } });
+    });
 
-  revalidatePath('/licencas');
-  return { success: true };
+    revalidatePath('/licencas');
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
 }

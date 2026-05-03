@@ -12,6 +12,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Ignorar Server Actions (Next.js envia como POST para a mesma rota)
+  if (request.method === 'POST') {
+    return NextResponse.next();
+  }
+
   // ─────────────────────────────────────────────
   // 1. SUPER ADMIN: adm.agendeae.com.br
   // ─────────────────────────────────────────────

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { updateLicenseStatus, updateLicenseExpiry } from '@/app/actions/licenses';
+import { updateLicenseStatus, updateLicenseExpiry, deleteLicense } from '@/app/actions/licenses';
 
 export default function LicenseActions({ license }: {
   license: { id: string; status: string; expiresAt: string | null };
@@ -31,6 +31,18 @@ export default function LicenseActions({ license }: {
       setShowActions(false);
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Erro');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!confirm('⚠️ ATENÇÃO: Isso vai excluir a licença, a empresa e o usuário permanentemente. Deseja continuar?')) return;
+    setIsLoading(true);
+    try {
+      await deleteLicense(license.id);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Erro ao excluir');
     } finally {
       setIsLoading(false);
     }
@@ -95,6 +107,22 @@ export default function LicenseActions({ license }: {
         }}
       >
         Alterar Vencimento
+      </button>
+      <button
+        onClick={handleDelete}
+        disabled={isLoading}
+        style={{
+          color: 'var(--danger)',
+          fontWeight: 500,
+          fontSize: '0.8rem',
+          padding: '0.25rem 0.5rem',
+          borderRadius: '4px',
+          border: '1px solid var(--danger)',
+          backgroundColor: 'transparent',
+          marginTop: '0.5rem',
+        }}
+      >
+        {isLoading ? 'Excluindo...' : '🗑 Excluir'}
       </button>
     </div>
   );

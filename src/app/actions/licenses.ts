@@ -111,3 +111,34 @@ export async function updateLicenseExpiry(id: string, expiresAt: string) {
   revalidatePath('/licencas');
   return { success: true };
 }
+
+export async function deleteLicense(id: string) {
+  await requireSuperAdminSession();
+
+  const license = await prisma.license.findUnique({
+    where: { id },
+    include: { company: true },
+  });
+
+  if (!license) throw new Error('Licença não encontrada.');
+
+  const companyId = license.companyId;
+  const ownerId = license.company.ownerId;
+
+  await prisma.$transaction(async (tx) => {
+    await tx.appointment.deleteMany({ where: { companyId } });
+    await tx.bookingRule.deleteMany({ where: { companyId } });
+    await tx.professionalService.deleteMany({ where: { companyId } });
+    await tx.blockedTime.deleteMany({ where: { companyId } });
+    await tx.availability.deleteMany({ where: { companyId } });
+    await tx.professional.deleteMany({ where: { companyId } });
+    await tx.service.deleteMany({ where: { companyId } });
+    await tx.customer.deleteMany({ where: { companyId } });
+    await tx.license.delete({ where: { id } });
+    await tx.company.delete({ where: { id: companyId } });
+    await tx.user.delete({ where: { id: ownerId } });
+  });
+
+  revalidatePath('/licencas');
+  return { success: true };
+}

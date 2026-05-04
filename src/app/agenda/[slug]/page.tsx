@@ -63,18 +63,32 @@ export default async function AgendaPage({ params }: { params: Promise<{ slug: s
             </p>
 
             {/* Socials & Contact */}
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', flexWrap: 'wrap' }}>
+            <div className={styles.socialRow}>
               {company.address && (
                 <span style={{ fontSize: '0.75rem', color: '#A1A1AA' }}>📍 {company.address}</span>
               )}
               {company.instagram && (
-                <a href={`https://instagram.com/${company.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.75rem', color: '#A1A1AA', textDecoration: 'none' }}>
-                  📷 {company.instagram}
+                <a
+                  href={`https://instagram.com/${company.instagram.replace('@', '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.socialLink}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/icons/instagram.png" alt="" className={styles.socialIcon} />
+                  <span>{company.instagram}</span>
                 </a>
               )}
               {company.whatsapp && (
-                <a href={`https://wa.me/55${company.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.75rem', color: '#A1A1AA', textDecoration: 'none' }}>
-                  💬 Contato
+                <a
+                  href={`https://wa.me/55${company.whatsapp.replace(/\D/g, '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.socialLink}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/icons/whatsapp.png" alt="" className={styles.socialIcon} />
+                  <span>Contato</span>
                 </a>
               )}
             </div>

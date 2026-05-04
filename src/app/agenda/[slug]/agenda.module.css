@@ -70,6 +70,30 @@
   margin-top: 0.5rem;
 }
 
+.socialRow {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.socialLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #a1a1aa;
+  text-decoration: none;
+}
+
+.socialIcon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  display: block;
+}
+
 .sectionTitle {
   font-size: 0.875rem;
   font-weight: 600;

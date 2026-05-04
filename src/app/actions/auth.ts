@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { signSession, getSessionCookieName } from '@/lib/auth/session';
+import { loginRedirectPath } from '@/lib/auth/server';
 import type { SessionPayload, UserRole } from '@/lib/auth/types';
 
 function normalizeRole(role: string): UserRole {
@@ -148,5 +149,5 @@ export async function logout() {
   cookieStore.delete('auth_token');
   cookieStore.delete('mockRole');
   cookieStore.delete('mockProfessionalId');
-  redirect('/login');
+  redirect(await loginRedirectPath());
 }

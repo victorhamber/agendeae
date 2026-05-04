@@ -1,8 +1,26 @@
-// A página raiz do domínio principal é controlada pelo middleware.
-// O middleware redireciona '/' para o login do painel (app.dominio.com/login).
-// Se o middleware não interceptar (ex: acesso direto em dev), redireciona aqui.
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { getServerSession } from '@/lib/auth/server';
 
-export default function Home() {
+export default async function Home() {
+  const h = await headers();
+  const host = (h.get('x-forwarded-host') ?? h.get('host') ?? '').toLowerCase();
+
+  if (host.startsWith('app.')) {
+    const session = await getServerSession();
+    if (session?.role === 'COMPANY_ADMIN' || session?.role === 'PROFESSIONAL') {
+      redirect('/app');
+    }
+    redirect('/app/login');
+  }
+
+  if (host.startsWith('adm.')) {
+    const session = await getServerSession();
+    if (session?.role === 'SUPER_ADMIN') {
+      redirect('/super-admin');
+    }
+    redirect('/super-admin/login');
+  }
+
   redirect('/app/login');
 }

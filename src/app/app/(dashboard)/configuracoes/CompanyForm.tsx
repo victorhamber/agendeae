@@ -7,17 +7,20 @@ import type { Company } from '@prisma/client';
 function ImageUploadField({ 
   label, 
   hint, 
+  exampleDimensions,
   currentUrl, 
   onUrlChange,
   aspectLabel
 }: { 
   label: string; 
   hint: string; 
+  exampleDimensions?: string;
   currentUrl: string; 
   onUrlChange: (url: string) => void;
   aspectLabel: string;
 }) {
   const [preview, setPreview] = useState(currentUrl);
+  const [fileDimensions, setFileDimensions] = useState<string>('');
   const [isUploading, setIsUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -27,7 +30,17 @@ function ImageUploadField({
 
     // Preview local
     const reader = new FileReader();
-    reader.onload = (ev) => setPreview(ev.target?.result as string);
+    reader.onload = (ev) => {
+      const url = ev.target?.result as string;
+      setPreview(url);
+      try {
+        const img = new Image();
+        img.onload = () => setFileDimensions(`${img.width}×${img.height}px`);
+        img.src = url;
+      } catch {
+        setFileDimensions('');
+      }
+    };
     reader.readAsDataURL(file);
 
     setIsUploading(true);
@@ -54,6 +67,7 @@ function ImageUploadField({
   const remove = () => {
     onUrlChange('');
     setPreview('');
+    setFileDimensions('');
     if (fileRef.current) fileRef.current.value = '';
   };
 
@@ -63,12 +77,19 @@ function ImageUploadField({
       <span style={{ display: 'block', color: 'var(--muted)', fontSize: '0.7rem', marginBottom: '0.5rem' }}>
         {hint}
       </span>
+      {(exampleDimensions || fileDimensions) && (
+        <span style={{ display: 'block', color: 'var(--muted)', fontSize: '0.7rem', marginBottom: '0.5rem' }}>
+          {exampleDimensions ? <>Ex.: <strong>{exampleDimensions}</strong></> : null}
+          {exampleDimensions && fileDimensions ? ' • ' : null}
+          {fileDimensions ? <>Arquivo: <strong>{fileDimensions}</strong></> : null}
+        </span>
+      )}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
         <div 
           onClick={() => fileRef.current?.click()}
           style={{ 
             width: aspectLabel === 'cover' ? '120px' : '80px', 
-            height: '80px', 
+            height: aspectLabel === 'cover' ? '60px' : '80px', 
             borderRadius: 'var(--radius)', 
             border: '2px dashed var(--border)', 
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -241,6 +262,7 @@ export default function CompanyForm({ company }: { company: Company }) {
           <ImageUploadField 
             label="Logo" 
             hint="Recomendado: Quadrado 400×400px. Formatos: JPG, PNG ou WebP." 
+            exampleDimensions="400×400px"
             currentUrl={logoUrl} 
             onUrlChange={setLogoUrl}
             aspectLabel="logo"
@@ -248,6 +270,7 @@ export default function CompanyForm({ company }: { company: Company }) {
           <ImageUploadField 
             label="Capa (Fundo)" 
             hint="Recomendado: Paisagem 16:9 (1200×675px). Formatos: JPG, PNG ou WebP."
+            exampleDimensions="1200×675px"
             currentUrl={coverUrl} 
             onUrlChange={setCoverUrl}
             aspectLabel="cover"

@@ -24,9 +24,6 @@ export async function proxy(request: NextRequest) {
   const pathname = nextUrl.pathname;
   if (isPublicFile(pathname)) return NextResponse.next();
 
-  // Não mexer em POST (Server Actions / forms)
-  if (request.method === 'POST') return NextResponse.next();
-
   const host = (request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? '').toLowerCase();
   const baseDomain = host.replace(/^www\./, '').replace(/:\d+$/, '');
 

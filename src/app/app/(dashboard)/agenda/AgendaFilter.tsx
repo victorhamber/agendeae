@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 const FILTERS = [
   { key: 'hoje', label: 'Hoje' },
@@ -19,22 +19,39 @@ export default function AgendaFilter() {
   const customFrom = searchParams.get('de') || '';
   const customTo = searchParams.get('ate') || '';
 
-  const [showCustom, setShowCustom] = useState(currentFilter === 'custom');
   const [dateFrom, setDateFrom] = useState(customFrom);
   const [dateTo, setDateTo] = useState(customTo);
 
+  const showCustom = currentFilter === 'custom';
+
+  useEffect(() => {
+    setDateFrom(customFrom);
+    setDateTo(customTo);
+  }, [customFrom, customTo]);
+
+  const buildQuery = useMemo(() => {
+    return (next: { filtro: string; de?: string; ate?: string }) => {
+      const params = new URLSearchParams();
+      params.set('filtro', next.filtro);
+      if (next.filtro === 'custom') {
+        if (next.de) params.set('de', next.de);
+        if (next.ate) params.set('ate', next.ate);
+      }
+      return `${pathname}?${params.toString()}`;
+    };
+  }, [pathname]);
+
   const applyFilter = (key: string) => {
     if (key === 'custom') {
-      setShowCustom(true);
+      router.push(buildQuery({ filtro: 'custom', de: customFrom || undefined, ate: customTo || undefined }));
       return;
     }
-    setShowCustom(false);
-    router.push(`${pathname}?filtro=${key}`);
+    router.push(buildQuery({ filtro: key }));
   };
 
   const applyCustomRange = () => {
     if (!dateFrom || !dateTo) return;
-    router.push(`${pathname}?filtro=custom&de=${dateFrom}&ate=${dateTo}`);
+    router.push(buildQuery({ filtro: 'custom', de: dateFrom, ate: dateTo }));
   };
 
   return (
@@ -67,8 +84,9 @@ export default function AgendaFilter() {
           padding: '1rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)', backgroundColor: 'rgba(0,0,0,0.02)'
         }}>
           <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>De</label>
+            <label htmlFor="agenda-filter-de" style={{ display: 'block', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>De</label>
             <input 
+              id="agenda-filter-de"
               type="date" 
               className="input" 
               value={dateFrom} 
@@ -77,8 +95,9 @@ export default function AgendaFilter() {
             />
           </div>
           <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>Até</label>
+            <label htmlFor="agenda-filter-ate" style={{ display: 'block', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>Até</label>
             <input 
+              id="agenda-filter-ate"
               type="date" 
               className="input" 
               value={dateTo} 

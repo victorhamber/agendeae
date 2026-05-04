@@ -66,6 +66,254 @@
   font-weight: bold;
 }
 
+/* ──────────────────────────────────────── */
+/* AgendaFilter                             */
+/* ──────────────────────────────────────── */
+.agendaFilter {
+  margin-bottom: 1.5rem;
+}
+
+.agendaFilterPills {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.agendaFilterPill {
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-weight: 400;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.agendaFilterPillActive {
+  border: 2px solid var(--primary);
+  background-color: rgba(99, 102, 241, 0.15);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.agendaFilterCustom {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-end;
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background-color: rgba(0, 0, 0, 0.02);
+  flex-wrap: wrap;
+}
+
+.agendaFilterFieldLabel {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-bottom: 0.25rem;
+}
+
+.agendaFilterDateInput {
+  padding: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.agendaFilterBuscarBtn {
+  padding: 0.5rem 1.25rem;
+  font-size: 0.875rem;
+}
+
+.accountSection {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.logoutButton {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+}
+
+/* ──────────────────────────────────────── */
+/* Sidebar account card                     */
+/* ──────────────────────────────────────── */
+.accountCardWrap {
+  margin-top: auto;
+  padding-top: 1rem;
+}
+
+.accountCard {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.9rem;
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.02);
+  text-decoration: none;
+  color: inherit;
+}
+
+.accountCard:hover {
+  border-color: rgba(99, 102, 241, 0.35);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
+.accountAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+}
+
+.accountMeta {
+  min-width: 0;
+  display: grid;
+  gap: 0.15rem;
+}
+
+.accountEmail {
+  font-size: 0.9rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+
+.accountPlan {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.accountLogoutForm {
+  margin-top: 0.75rem;
+}
+
+.accountLogoutButton {
+  width: 100%;
+  padding: 0.75rem 0.9rem;
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.accountLogoutButton:hover {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.25);
+  color: #b91c1c;
+}
+
+/* ──────────────────────────────────────── */
+/* ChangePasswordForm                       */
+/* ──────────────────────────────────────── */
+.changePasswordForm {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 420px;
+}
+
+.formAlert {
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.formAlertError {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.formAlertSuccess {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.formLabel {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+/* ──────────────────────────────────────── */
+/* Conta page                               */
+/* ──────────────────────────────────────── */
+.contaCard {
+  padding: 2rem;
+  border-radius: var(--radius);
+}
+
+.contaCardSpaced {
+  margin-bottom: 2rem;
+}
+
+.contaSectionTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.contaSectionTitleTight {
+  margin-bottom: 0.5rem;
+}
+
+.contaMuted {
+  color: var(--muted);
+}
+
+.contaSecurityText {
+  margin-bottom: 1.5rem;
+}
+
+.licenseGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.licenseTile {
+  padding: 1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.licenseTileLabel {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.licenseTileValue {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-top: 0.25rem;
+}
+
+.licenseMissing {
+  margin-top: 1rem;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
 /* Desktop defaults — top bar hidden */
 .mobileTopBar {
   display: none;
@@ -135,6 +383,7 @@
     bottom: 0;
     background-color: rgba(0, 0, 0, 0.5);
     z-index: 45;
+    -webkit-backdrop-filter: blur(2px);
     backdrop-filter: blur(2px);
   }
 

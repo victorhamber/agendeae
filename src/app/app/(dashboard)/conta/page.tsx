@@ -35,41 +35,41 @@ export default async function ContaPage() {
         <h1 className={styles.title}>Minha Conta</h1>
       </header>
 
-      <div className="glass" style={{ padding: '2rem', borderRadius: 'var(--radius)', marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '1rem' }}>Status da Licença</h2>
+      <div className={`glass ${styles.contaCard} ${styles.contaCardSpaced}`}>
+        <h2 className={styles.contaSectionTitle}>Status da Licença</h2>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
-          <div style={{ padding: '1rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)', backgroundColor: 'rgba(0,0,0,0.02)' }}>
-            <p style={{ fontSize: '0.75rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Empresa</p>
-            <p style={{ fontSize: '1.125rem', fontWeight: 700, marginTop: '0.25rem' }}>{company.name}</p>
+        <div className={styles.licenseGrid}>
+          <div className={styles.licenseTile}>
+            <p className={styles.licenseTileLabel}>Empresa</p>
+            <p className={styles.licenseTileValue}>{company.name}</p>
           </div>
 
-          <div style={{ padding: '1rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)', backgroundColor: 'rgba(0,0,0,0.02)' }}>
-            <p style={{ fontSize: '0.75rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Plano</p>
-            <p style={{ fontSize: '1.125rem', fontWeight: 700, marginTop: '0.25rem' }}>{license?.plan?.name ?? '—'}</p>
+          <div className={styles.licenseTile}>
+            <p className={styles.licenseTileLabel}>Plano</p>
+            <p className={styles.licenseTileValue}>{license?.plan?.name ?? '—'}</p>
           </div>
 
-          <div style={{ padding: '1rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)', backgroundColor: 'rgba(0,0,0,0.02)' }}>
-            <p style={{ fontSize: '0.75rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</p>
-            <p style={{ fontSize: '1.125rem', fontWeight: 700, marginTop: '0.25rem' }}>{license?.status ?? '—'}</p>
+          <div className={styles.licenseTile}>
+            <p className={styles.licenseTileLabel}>Status</p>
+            <p className={styles.licenseTileValue}>{license?.status ?? '—'}</p>
           </div>
 
-          <div style={{ padding: '1rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)', backgroundColor: 'rgba(0,0,0,0.02)' }}>
-            <p style={{ fontSize: '0.75rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Renovação</p>
-            <p style={{ fontSize: '1.125rem', fontWeight: 700, marginTop: '0.25rem' }}>{formatDate(renewalDate)}</p>
+          <div className={styles.licenseTile}>
+            <p className={styles.licenseTileLabel}>Renovação</p>
+            <p className={styles.licenseTileValue}>{formatDate(renewalDate)}</p>
           </div>
         </div>
 
         {!license && (
-          <p style={{ marginTop: '1rem', color: 'var(--muted)', fontSize: '0.875rem' }}>
+          <p className={styles.licenseMissing}>
             Nenhuma licença encontrada para esta empresa.
           </p>
         )}
       </div>
 
-      <div className="glass" style={{ padding: '2rem', borderRadius: 'var(--radius)' }}>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.5rem' }}>Segurança</h2>
-        <p style={{ color: 'var(--muted)', marginBottom: '1.5rem' }}>
+      <div className={`glass ${styles.contaCard}`}>
+        <h2 className={`${styles.contaSectionTitle} ${styles.contaSectionTitleTight}`}>Segurança</h2>
+        <p className={`${styles.contaMuted} ${styles.contaSecurityText}`}>
           Redefina sua senha para manter sua conta protegida.
         </p>
 

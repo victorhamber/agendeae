@@ -37,32 +37,30 @@ const getNextDays = (numDays: number) => {
 const dayNames = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
 const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
-export default function BookingFlow({ 
-  services, 
+export default function BookingFlow({
+  services,
   professionals,
   companyId,
   companyWhatsapp,
-  companySlug,
   allowAnyProfessional = true,
   allowCancellation = true,
   maxAdvanceDays = 60,
-}: { 
-  services: Service[], 
-  professionals: Professional[],
-  companyId: string,
-  companyWhatsapp: string,
-  companySlug: string,
-  allowAnyProfessional?: boolean,
-  allowCancellation?: boolean,
-  maxAdvanceDays?: number,
+}: {
+  services: Service[];
+  professionals: Professional[];
+  companyId: string;
+  companyWhatsapp: string;
+  allowAnyProfessional?: boolean;
+  allowCancellation?: boolean;
+  maxAdvanceDays?: number;
 }) {
   const [selectedProfessional, setSelectedProfessional] = useState<Professional | null>(null);
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
   const [selectedDateObj, setSelectedDateObj] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string>('');
-  
+
   const [step, setStep] = useState<'SERVICES' | 'PROFESSIONALS' | 'DATETIME'>('SERVICES');
-  
+
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [loadingTimes, setLoadingTimes] = useState(false);
 
@@ -73,7 +71,11 @@ export default function BookingFlow({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [confirmedData, setConfirmedData] = useState<{
-    services: string; date: string; time: string; professional: string; total: string;
+    services: string;
+    date: string;
+    time: string;
+    professional: string;
+    total: string;
   } | null>(null);
 
   // Datas expandidas até o limite permitido pela empresa
@@ -111,7 +113,6 @@ export default function BookingFlow({
   const handleScroll = () => {
     if (!sliderRef.current) return;
     const scrollPos = sliderRef.current.scrollLeft;
-    // Largura aproximada de cada card (min-width: 60px + gap: 12px) = 72px
     const index = Math.min(Math.max(Math.floor(scrollPos / 72), 0), dates.length - 1);
     const visibleDate = dates[index];
     if (visibleDate) {
@@ -134,7 +135,7 @@ export default function BookingFlow({
   const totalPrice = selectedServices.reduce((acc, curr) => acc + curr.price, 0);
 
   const toggleService = (service: Service) => {
-    setSelectedTime(''); // Reset time if duration changes
+    setSelectedTime('');
     if (selectedServices.find(s => s.id === service.id)) {
       setSelectedServices(selectedServices.filter(s => s.id !== service.id));
     } else {
@@ -148,10 +149,8 @@ export default function BookingFlow({
     }
   };
 
-
   useEffect(() => {
     if (selectedProfessional && selectedDateObj && selectedServices.length > 0) {
-      // Fetch times
       const fetchTimes = async () => {
         setLoadingTimes(true);
         setAvailableTimes([]);
@@ -191,16 +190,20 @@ export default function BookingFlow({
         dateStr: selectedDateObj.toISOString().split('T')[0],
         startTime: selectedTime,
         customerName,
-        customerWhatsapp
+        customerWhatsapp,
       });
-      
-      // Salvar dados para a tela de confirmação
+
       setConfirmedData({
         services: selectedServices.map(s => s.name).join(' + '),
-        date: selectedDateObj.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+        date: selectedDateObj.toLocaleDateString('pt-BR', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        }),
         time: selectedTime,
         professional: selectedProfessional.name,
-        total: `R$ ${totalPrice.toFixed(2).replace('.', ',')}`
+        total: `R$ ${totalPrice.toFixed(2).replace('.', ',')}`,
       });
       setShowConfirmation(true);
     } catch (error) {
@@ -215,110 +218,53 @@ export default function BookingFlow({
   if (showConfirmation && confirmedData) {
     const whatsappClean = companyWhatsapp.replace(/\D/g, '');
     return (
-      <div style={{ textAlign: 'center', padding: '2rem 0' }}>
-        <div style={{ 
-          width: '80px', height: '80px', borderRadius: '50%', 
-          background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          margin: '0 auto 1.5rem', fontSize: '2rem'
-        }}>
-          ✓
-        </div>
-        
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '0.5rem' }}>Agendamento Confirmado!</h2>
-        <p style={{ color: '#A1A1AA', fontSize: '0.875rem', marginBottom: '2rem' }}>
-          Seu horário foi reservado com sucesso.
-        </p>
+      <div className={styles.confirmationRoot}>
+        <div className={styles.confirmationIcon}>✓</div>
 
-        <div style={{ 
-          backgroundColor: '#1A1A1A', padding: '1.5rem', borderRadius: '16px', 
-          textAlign: 'left', marginBottom: '2rem' 
-        }}>
-          <div style={{ marginBottom: '1rem' }}>
-            <p style={{ color: '#A1A1AA', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Serviço(s)</p>
-            <p style={{ fontWeight: 600 }}>{confirmedData.services}</p>
+        <h2 className={styles.confirmationHeading}>Agendamento Confirmado!</h2>
+        <p className={styles.confirmationLead}>Seu horário foi reservado com sucesso.</p>
+
+        <div className={styles.summaryCard}>
+          <div className={styles.summarySection}>
+            <p className={styles.fieldLabelMuted}>Serviço(s)</p>
+            <p className={styles.fieldValueStrong}>{confirmedData.services}</p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', borderTop: '1px solid #27272A', paddingTop: '1rem' }}>
+          <div className={styles.summaryGrid2}>
             <div>
-              <p style={{ color: '#A1A1AA', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Profissional</p>
-              <p style={{ fontWeight: 600 }}>{confirmedData.professional}</p>
+              <p className={styles.fieldLabelMuted}>Profissional</p>
+              <p className={styles.fieldValueStrong}>{confirmedData.professional}</p>
             </div>
             <div>
-              <p style={{ color: '#A1A1AA', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Valor</p>
-              <p style={{ fontWeight: 600, color: '#22C55E' }}>{confirmedData.total}</p>
+              <p className={styles.fieldLabelMuted}>Valor</p>
+              <p className={styles.summaryAmount}>{confirmedData.total}</p>
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', borderTop: '1px solid #27272A', paddingTop: '1rem', marginTop: '1rem' }}>
+          <div className={styles.summaryGrid2Spaced}>
             <div>
-              <p style={{ color: '#A1A1AA', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Data</p>
-              <p style={{ fontWeight: 600, textTransform: 'capitalize' }}>{confirmedData.date}</p>
+              <p className={styles.fieldLabelMuted}>Data</p>
+              <p className={styles.summaryDate}>{confirmedData.date}</p>
             </div>
             <div>
-              <p style={{ color: '#A1A1AA', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Horário</p>
-              <p style={{ fontWeight: 600 }}>{confirmedData.time}</p>
+              <p className={styles.fieldLabelMuted}>Horário</p>
+              <p className={styles.fieldValueStrong}>{confirmedData.time}</p>
             </div>
           </div>
         </div>
 
         {whatsappClean && (
-          <a 
+          <a
             href={`https://wa.me/55${whatsappClean}?text=${encodeURIComponent(`Olá! Acabei de agendar ${confirmedData.services} para ${confirmedData.date} às ${confirmedData.time} com ${confirmedData.professional}. Meu nome é ${customerName}.`)}`}
             target="_blank"
             rel="noopener noreferrer"
-            style={{
-              display: 'block',
-              padding: '1rem',
-              borderRadius: '12px',
-              backgroundColor: '#25D366',
-              color: '#fff',
-              fontWeight: 700,
-              fontSize: '1rem',
-              textDecoration: 'none',
-              textAlign: 'center',
-              marginBottom: '1rem'
-            }}
+            className={styles.whatsappCta}
           >
             💬 Falar no WhatsApp
           </a>
         )}
 
-        <button
-          onClick={() => window.location.reload()}
-          style={{
-            width: '100%',
-            padding: '1rem',
-            borderRadius: '12px',
-            border: '1px solid #27272A',
-            backgroundColor: 'transparent',
-            color: '#fff',
-            fontWeight: 600,
-            fontSize: '1rem',
-            cursor: 'pointer',
-            marginBottom: '0.75rem'
-          }}
-        >
+        <button type="button" className={styles.btnNewBooking} onClick={() => window.location.reload()}>
           Fazer Novo Agendamento
         </button>
-
-        <a
-          href={`/${companySlug}/meus-agendamentos`}
-          style={{
-            display: 'block',
-            width: '100%',
-            padding: '1rem',
-            borderRadius: '12px',
-            border: '1px solid #27272A',
-            backgroundColor: '#18181B',
-            color: '#fff',
-            fontWeight: 600,
-            fontSize: '0.875rem',
-            cursor: 'pointer',
-            textDecoration: 'none',
-            textAlign: 'center'
-          }}
-        >
-          📅 Ver Meus Agendamentos
-        </a>
       </div>
     );
   }
@@ -326,56 +272,57 @@ export default function BookingFlow({
   if (showCheckout) {
     return (
       <div>
-        <button onClick={() => setShowCheckout(false)} style={{ color: 'var(--company-primary, #FFD700)', background: 'none', border: 'none', fontWeight: 600, fontSize: '1rem', cursor: 'pointer', marginBottom: '2rem' }}>
+        <button type="button" className={styles.backNavButton} onClick={() => setShowCheckout(false)}>
           ← Voltar
         </button>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '2rem' }}>FINALIZAR AGENDAMENTO</h2>
-        
-        <div style={{ backgroundColor: '#1A1A1A', padding: '1.5rem', borderRadius: '16px', marginBottom: '2rem' }}>
-          <p style={{ color: '#A1A1AA', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Serviço(s)</p>
-          <p style={{ fontWeight: 600, marginBottom: '1rem' }}>{selectedServices.map(s => s.name).join(' + ')}</p>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', borderTop: '1px solid #27272A', paddingTop: '1rem' }}>
+        <h2 className={styles.flowTitle}>FINALIZAR AGENDAMENTO</h2>
+
+        <div className={styles.checkoutSummaryCard}>
+          <p className={styles.fieldLabelMutedMd}>Serviço(s)</p>
+          <p className={styles.fieldValueStrongMb}>{selectedServices.map(s => s.name).join(' + ')}</p>
+
+          <div className={styles.summaryGrid2}>
             <div>
-              <p style={{ color: '#A1A1AA', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Data</p>
-              <p style={{ fontWeight: 600 }}>{selectedDateObj?.toLocaleDateString()}</p>
+              <p className={styles.fieldLabelMutedMd}>Data</p>
+              <p className={styles.fieldValueStrong}>{selectedDateObj?.toLocaleDateString()}</p>
             </div>
             <div>
-              <p style={{ color: '#A1A1AA', fontSize: '0.875rem', marginBottom: '0.25rem' }}>Hora</p>
-              <p style={{ fontWeight: 600 }}>{selectedTime}</p>
+              <p className={styles.fieldLabelMutedMd}>Hora</p>
+              <p className={styles.fieldValueStrong}>{selectedTime}</p>
             </div>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <form className={styles.formStack} onSubmit={handleSubmit}>
           <div>
-            <label style={{ display: 'block', color: '#A1A1AA', fontSize: '0.875rem', marginBottom: '0.5rem' }}>SEU NOME</label>
-            <input 
-              type="text" 
+            <label className={styles.formLabel} htmlFor="bf-customer-name">
+              SEU NOME
+            </label>
+            <input
+              id="bf-customer-name"
+              type="text"
               className={styles.darkInput}
-              required 
-              placeholder="Digite seu nome" 
+              required
+              placeholder="Digite seu nome"
               value={customerName}
               onChange={e => setCustomerName(e.target.value)}
             />
           </div>
           <div>
-            <label style={{ display: 'block', color: '#A1A1AA', fontSize: '0.875rem', marginBottom: '0.5rem' }}>SEU WHATSAPP</label>
-            <input 
-              type="tel" 
+            <label className={styles.formLabel} htmlFor="bf-customer-wa">
+              SEU WHATSAPP
+            </label>
+            <input
+              id="bf-customer-wa"
+              type="tel"
               className={styles.darkInput}
-              required 
-              placeholder="(00) 00000-0000" 
+              required
+              placeholder="(00) 00000-0000"
               value={customerWhatsapp}
               onChange={e => setCustomerWhatsapp(e.target.value)}
             />
           </div>
-          <button 
-            type="submit" 
-            className={styles.bookNowBtn}
-            disabled={isSubmitting}
-            style={{ marginTop: '1rem' }}
-          >
+          <button type="submit" className={`${styles.bookNowBtn} ${styles.bookNowBtnTight}`} disabled={isSubmitting}>
             {isSubmitting ? 'CONFIRMANDO...' : `CONFIRMAR R$ ${totalPrice.toFixed(2).replace('.', ',')}`}
           </button>
         </form>
@@ -385,68 +332,54 @@ export default function BookingFlow({
 
   return (
     <div>
-      {/* STEP 1: SERVICES */}
       {step === 'SERVICES' && (
         <div>
           <h2 className={styles.sectionTitle}>ESCOLHA OS SERVIÇOS</h2>
-          <div style={{ marginBottom: '6rem' }}>
+          <div className={styles.servicesListPad}>
             {services.map(service => {
               const isSelected = selectedServices.some(s => s.id === service.id);
               return (
-                <div 
-                  key={service.id} 
+                <div
+                  key={service.id}
+                  role="button"
+                  tabIndex={0}
                   onClick={() => toggleService(service)}
-                  style={{ 
-                    display: 'flex', 
-                    gap: '1rem', 
-                    padding: '1rem', 
-                    backgroundColor: isSelected ? '#27272A' : '#1A1A1A', 
-                    borderRadius: '12px', 
-                    marginBottom: '1rem',
-                    border: isSelected ? '1px solid var(--company-primary)' : '1px solid transparent',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease'
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      toggleService(service);
+                    }
                   }}
+                  className={`${styles.serviceRow} ${isSelected ? styles.serviceRowSelected : ''}`}
                 >
                   {service.imageUrl ? (
-                    <div style={{ 
-                      width: '80px', height: '80px', borderRadius: '8px', backgroundColor: '#27272A', flexShrink: 0,
-                      backgroundImage: `url(${service.imageUrl})`,
-                      backgroundSize: 'cover', backgroundPosition: 'center'
-                    }}></div>
-                  ) : (
-                    <div style={{ 
-                      width: '80px', height: '80px', borderRadius: '8px', backgroundColor: '#27272A', flexShrink: 0,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#71717A'
-                    }}>
-                      <span style={{ fontSize: '1.5rem' }}>✂️</span>
+                    <div className={styles.serviceThumb}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={service.imageUrl} alt="" className={styles.serviceThumbImage} />
                     </div>
+                  ) : (
+                    <div className={styles.serviceThumbPlaceholder}>✂️</div>
                   )}
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: '0 0 0.25rem 0', color: isSelected ? 'var(--company-primary)' : '#FFF' }}>{service.name}</h3>
-                    {service.description && (
-                      <p style={{ fontSize: '0.75rem', color: '#A1A1AA', margin: '0 0 0.5rem 0', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                        {service.description}
-                      </p>
-                    )}
-                    <p style={{ fontSize: '0.875rem', color: '#E4E4E7', fontWeight: 600, margin: 0 }}>R$ {service.price.toFixed(2).replace('.', ',')} • {service.durationMinutes} min</p>
+                  <div className={styles.serviceContent}>
+                    <h3 className={styles.serviceTitle}>{service.name}</h3>
+                    {service.description && <p className={styles.serviceDesc}>{service.description}</p>}
+                    <p className={styles.serviceMeta}>
+                      R$ {service.price.toFixed(2).replace('.', ',')} • {service.durationMinutes} min
+                    </p>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <div className={styles.toggleCell}>
                     <div className={`${styles.toggleSwitch} ${isSelected ? styles.active : ''}`}>
-                      <div className={styles.toggleKnob}></div>
+                      <div className={styles.toggleKnob} />
                     </div>
                   </div>
                 </div>
               );
             })}
           </div>
-          
+
           {selectedServices.length > 0 && (
             <div className={styles.stickyFooter}>
-              <button 
-                className={styles.bookNowBtn}
-                onClick={goToProfessionals}
-              >
+              <button type="button" className={styles.bookNowBtn} onClick={goToProfessionals}>
                 CONTINUAR • {selectedServices.length} SERVIÇO(S)
               </button>
             </div>
@@ -454,119 +387,135 @@ export default function BookingFlow({
         </div>
       )}
 
-      {/* STEP 2: PROFESSIONALS */}
       {step === 'PROFESSIONALS' && (
         <div>
-          {/* Active Services Header */}
-          <div style={{ marginBottom: '2rem', padding: '1rem', backgroundColor: '#1A1A1A', borderRadius: '12px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-              <p style={{ fontSize: '0.65rem', color: '#A1A1AA', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '1px', margin: 0 }}>Serviços Selecionados</p>
-              <button onClick={() => setStep('SERVICES')} style={{ background: 'none', border: 'none', color: '#A1A1AA', fontSize: '0.75rem', cursor: 'pointer', padding: 0 }}>✎ Trocar</button>
+          <div className={styles.selectionRecap}>
+            <div className={styles.selectionRecapHeader}>
+              <p className={styles.overlineCaps}>Serviços Selecionados</p>
+              <button type="button" className={styles.ghostLinkBtn} onClick={() => setStep('SERVICES')}>
+                ✎ Trocar
+              </button>
             </div>
-            <p style={{ fontWeight: 600, margin: '0 0 0.25rem 0' }}>{selectedServices.map(s => s.name).join(' + ')}</p>
-            <p style={{ fontSize: '0.875rem', color: 'var(--company-primary)', margin: 0, fontWeight: 600 }}>Total: R$ {totalPrice.toFixed(2).replace('.', ',')} • {totalDuration} min</p>
+            <p className={styles.recapNames}>{selectedServices.map(s => s.name).join(' + ')}</p>
+            <p className={styles.recapTotal}>
+              Total: R$ {totalPrice.toFixed(2).replace('.', ',')} • {totalDuration} min
+            </p>
           </div>
 
           <h2 className={styles.sectionTitle}>ESCOLHA O PROFISSIONAL</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1rem' }}>
-            {/* Opção "Qualquer Profissional" */}
+          <div className={styles.profGrid}>
             {allowAnyProfessional && (
-              <div 
-                className={styles.profCard}
+              <div
+                className={`${styles.profCard} ${styles.profCardAny}`}
+                role="button"
+                tabIndex={0}
                 onClick={() => {
-                  // Pick a random professional for "any" — the backend will validate availability
                   const randomProf = professionals[Math.floor(Math.random() * professionals.length)];
                   setSelectedProfessional({ ...randomProf, name: 'Qualquer Disponível' });
                   setStep('DATETIME');
                 }}
-                style={{ cursor: 'pointer', borderColor: 'var(--company-primary)', borderWidth: '1px', borderStyle: 'dashed' }}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    const randomProf = professionals[Math.floor(Math.random() * professionals.length)];
+                    setSelectedProfessional({ ...randomProf, name: 'Qualquer Disponível' });
+                    setStep('DATETIME');
+                  }
+                }}
               >
-                <div style={{ 
-                  width: '64px', height: '64px', borderRadius: '50%', backgroundColor: '#27272A', margin: '0 auto 1rem',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem'
-                }}>🔀</div>
-                <h3 style={{ fontSize: '0.875rem', fontWeight: 700, margin: '0 0 0.25rem 0' }}>Qualquer</h3>
-                <p style={{ fontSize: '0.75rem', color: '#A1A1AA', margin: '0 0 0.25rem 0' }}>Disponível</p>
+                <div className={styles.profAvatarPlaceholder}>🔀</div>
+                <h3 className={styles.profCardTitle}>Qualquer</h3>
+                <p className={styles.profCardSubtitle}>Disponível</p>
               </div>
             )}
             {professionals.map(prof => (
-              <div 
-                key={prof.id} 
-                className={styles.profCard}
+              <div
+                key={prof.id}
+                className={`${styles.profCard} ${styles.profCardClickable}`}
+                role="button"
+                tabIndex={0}
                 onClick={() => {
                   setSelectedProfessional(prof);
                   setStep('DATETIME');
                 }}
-                style={{ cursor: 'pointer' }}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setSelectedProfessional(prof);
+                    setStep('DATETIME');
+                  }
+                }}
               >
-                <div style={{ 
-                  width: '64px', height: '64px', borderRadius: '50%', backgroundColor: '#27272A', margin: '0 auto 1rem',
-                  backgroundImage: prof.photoUrl ? `url(${prof.photoUrl})` : 'none',
-                  backgroundSize: 'cover', backgroundPosition: 'center'
-                }}></div>
-                <h3 style={{ fontSize: '0.875rem', fontWeight: 700, margin: '0 0 0.25rem 0' }}>{prof.name}</h3>
-                <p style={{ fontSize: '0.75rem', color: '#A1A1AA', margin: '0 0 0.25rem 0' }}>{prof.specialty || 'Profissional'}</p>
-                <div style={{ fontSize: '0.75rem', color: '#FBBF24', fontWeight: 'bold' }}>
-                  ★ {(prof.ratingAverage ?? 5.0).toFixed(1)}
-                </div>
+                {prof.photoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={prof.photoUrl} alt="" className={styles.profAvatarPhoto} />
+                ) : (
+                  <div className={styles.profAvatarEmpty} aria-hidden />
+                )}
+                <h3 className={styles.profCardTitle}>{prof.name}</h3>
+                <p className={styles.profCardSubtitle}>{prof.specialty || 'Profissional'}</p>
+                <div className={styles.profRatingStars}>★ {(prof.ratingAverage ?? 5.0).toFixed(1)}</div>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* STEP 3: DATE & TIME */}
       {step === 'DATETIME' && selectedProfessional && (
         <div>
-          {/* Active Services Header */}
-          <div style={{ marginBottom: '1rem', padding: '1rem', backgroundColor: '#1A1A1A', borderRadius: '12px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-              <p style={{ fontSize: '0.65rem', color: '#A1A1AA', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '1px', margin: 0 }}>Serviços Selecionados</p>
-              <button onClick={() => setStep('SERVICES')} style={{ background: 'none', border: 'none', color: '#A1A1AA', fontSize: '0.75rem', cursor: 'pointer', padding: 0 }}>✎ Trocar</button>
+          <div className={styles.selectionRecapTight}>
+            <div className={styles.selectionRecapHeader}>
+              <p className={styles.overlineCaps}>Serviços Selecionados</p>
+              <button type="button" className={styles.ghostLinkBtn} onClick={() => setStep('SERVICES')}>
+                ✎ Trocar
+              </button>
             </div>
-            <p style={{ fontWeight: 600, margin: '0 0 0.25rem 0' }}>{selectedServices.map(s => s.name).join(' + ')}</p>
+            <p className={styles.recapNames}>{selectedServices.map(s => s.name).join(' + ')}</p>
           </div>
 
-          {/* Active Professional Header */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem', padding: '1rem', backgroundColor: '#1A1A1A', borderRadius: '12px' }}>
-            <div style={{ 
-              width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#27272A', flexShrink: 0,
-              backgroundImage: selectedProfessional.photoUrl ? `url(${selectedProfessional.photoUrl})` : 'none',
-              backgroundSize: 'cover', backgroundPosition: 'center'
-            }}></div>
-            <div style={{ flex: 1 }}>
-              <p style={{ fontSize: '0.65rem', color: '#A1A1AA', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '1px', margin: '0 0 0.25rem 0' }}>Profissional</p>
-              <h2 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                {selectedProfessional.name}
-              </h2>
+          <div className={styles.profPickerBar}>
+            {selectedProfessional.photoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={selectedProfessional.photoUrl} alt="" className={styles.profPickerAvatarImg} />
+            ) : (
+              <div className={styles.profPickerAvatarEmpty} aria-hidden />
+            )}
+            <div className={styles.profPickerBody}>
+              <p className={styles.profPickerOverline}>Profissional</p>
+              <h2 className={styles.profPickerName}>{selectedProfessional.name}</h2>
             </div>
-            <button onClick={() => setStep('PROFESSIONALS')} style={{ background: 'none', border: 'none', color: '#A1A1AA', fontSize: '0.75rem', cursor: 'pointer' }}>✎ Trocar</button>
+            <button type="button" className={styles.ghostLinkBtn} onClick={() => setStep('PROFESSIONALS')}>
+              ✎ Trocar
+            </button>
           </div>
 
           <h2 className={styles.sectionTitle}>DATA E HORA</h2>
-          <p style={{ color: '#A1A1AA', fontSize: '0.875rem', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '1px' }}>
-            {visibleMonth}
-          </p>
-          
-          {/* Date Scroll */}
-          <div 
-            className={styles.dateScroll}
+          <p className={styles.monthCaption}>{visibleMonth}</p>
+
+          <div
+            className={`${styles.dateScroll} ${styles.dateScrollDraggable}`}
             ref={sliderRef}
             onMouseDown={onMouseDown}
             onMouseLeave={onMouseLeaveOrUp}
             onMouseUp={onMouseLeaveOrUp}
             onMouseMove={onMouseMove}
             onScroll={handleScroll}
-            style={{ cursor: 'grab' }}
           >
             {dates.map(date => {
               const isSelected = selectedDateObj?.getTime() === date.getTime();
               return (
-                <div 
+                <div
                   key={date.toISOString()}
-                  className={`${styles.dateCard} ${isSelected ? styles.selected : ''}`}
+                  className={`${styles.dateCard} ${isSelected ? styles.selected : ''} ${styles.dateCardNoSelect}`}
+                  role="button"
+                  tabIndex={0}
                   onClick={() => handleDateClick(date)}
-                  style={{ userSelect: 'none' }}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleDateClick(date);
+                    }
+                  }}
                 >
                   <span className={styles.dayNum}>{date.getDate()}</span>
                   <span className={styles.dayName}>{dayNames[date.getDay()]}</span>
@@ -575,18 +524,18 @@ export default function BookingFlow({
             })}
           </div>
 
-          {/* Time Grid */}
           {selectedDateObj && (
-            <div style={{ minHeight: '150px', paddingBottom: '6rem' }}>
+            <div className={styles.timeSection}>
               {loadingTimes ? (
-                <p style={{ color: '#A1A1AA', textAlign: 'center', marginTop: '2rem' }}>Buscando horários...</p>
+                <p className={styles.loadingMuted}>Buscando horários...</p>
               ) : availableTimes.length === 0 ? (
-                <p style={{ color: '#EF4444', textAlign: 'center', marginTop: '2rem', fontSize: '0.875rem' }}>Nenhum horário disponível para esta duração.</p>
+                <p className={styles.errorNoSlots}>Nenhum horário disponível para esta duração.</p>
               ) : (
                 <div className={styles.timeGrid}>
                   {availableTimes.map(time => (
                     <button
                       key={time}
+                      type="button"
                       className={`${styles.timeButton} ${selectedTime === time ? styles.selected : ''}`}
                       onClick={() => setSelectedTime(time)}
                     >
@@ -598,13 +547,9 @@ export default function BookingFlow({
             </div>
           )}
 
-          {/* Sticky Book Now Button */}
           {selectedDateObj && selectedTime && (
             <div className={styles.stickyFooter}>
-              <button 
-                className={styles.bookNowBtn}
-                onClick={handleBookNow}
-              >
+              <button type="button" className={styles.bookNowBtn} onClick={handleBookNow}>
                 AGENDAR AGORA • R$ {totalPrice.toFixed(2).replace('.', ',')}
               </button>
             </div>

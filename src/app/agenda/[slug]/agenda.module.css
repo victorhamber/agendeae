@@ -10,9 +10,11 @@
   margin: 0 auto; /* Center horizontally */
   min-height: 100vh;
   background-color: #050505; /* Deep black background */
-  color: #FFFFFF;
+  color: #ffffff;
   position: relative;
   overflow-x: hidden;
+  /* Texto sobre fundos da cor da marca (botões, chips) — classes .theme* sobrescrevem */
+  --company-on-primary: #0a0a0a;
 }
 
 .cover {
@@ -63,11 +65,24 @@
   margin-bottom: 2rem;
 }
 
+.headerInfoTight {
+  margin-bottom: 1.5rem;
+}
+
+.linkPrimary {
+  color: var(--company-primary, #ffd700);
+  font-size: 0.875rem;
+  text-decoration: none;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  display: inline-block;
+}
+
 .badge {
   display: inline-block;
   padding: 0.25rem 0.75rem;
-  background-color: var(--company-primary, #FFD700);
-  color: #000;
+  background-color: var(--company-primary, #ffd700);
+  color: var(--company-on-primary, #0a0a0a);
   font-weight: 800;
   font-size: 0.65rem;
   text-transform: uppercase;
@@ -91,7 +106,7 @@
 .ratingRow {
   display: flex;
   gap: 0.5rem;
-  color: #ffd700;
+  color: var(--company-primary, #ffd700);
   font-size: 0.875rem;
   margin-top: 0.25rem;
 }
@@ -108,6 +123,19 @@
 .appointmentsLinkWrap {
   margin-top: 2.5rem;
   padding: 0 1.5rem 2rem 1.5rem;
+}
+
+.whatsappCta {
+  display: block;
+  padding: 1rem;
+  border-radius: 12px;
+  background-color: var(--company-primary, #22c55e);
+  color: var(--company-on-primary, #0a0a0a);
+  font-weight: 700;
+  font-size: 1rem;
+  text-decoration: none;
+  text-align: center;
+  margin-bottom: 1rem;
 }
 
 .appointmentsLink {
@@ -229,9 +257,9 @@
 }
 
 .timeButton.selected {
-  background-color: var(--company-primary, #FFD700);
-  color: #000000;
-  border-color: var(--company-primary, #FFD700);
+  background-color: var(--company-primary, #ffd700);
+  color: var(--company-on-primary, #0a0a0a);
+  border-color: var(--company-primary, #ffd700);
 }
 
 /* Date Selector */
@@ -261,8 +289,8 @@
 }
 
 .dateCard.selected {
-  background-color: var(--company-primary, #FFD700);
-  color: #000000;
+  background-color: var(--company-primary, #ffd700);
+  color: var(--company-on-primary, #0a0a0a);
 }
 
 .dateCard .dayNum {
@@ -298,8 +326,8 @@
 
 .bookNowBtn {
   width: 100%;
-  background-color: var(--company-primary, #FFD700);
-  color: #000000;
+  background-color: var(--company-primary, #ffd700);
+  color: var(--company-on-primary, #0a0a0a);
   font-weight: 800;
   padding: 1.25rem;
   border-radius: 99px;
@@ -341,49 +369,697 @@
   border: 2px solid transparent;
 }
 .profCard.selected {
-  border-color: var(--company-primary, #FFD700);
+  border-color: var(--company-primary, #ffd700);
 }
 
-/* Cor da marca (sem style inline): define --company-primary para toggles/botões */
+/* —— BookingFlow (sem style inline) —— */
+
+.confirmationRoot {
+  text-align: center;
+  padding: 2rem 0;
+}
+
+.confirmationIcon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  font-size: 2rem;
+}
+
+.confirmationHeading {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0 0 0.5rem;
+}
+
+.confirmationLead {
+  color: #a1a1aa;
+  font-size: 0.875rem;
+  margin: 0 0 2rem;
+}
+
+.summaryCard {
+  background-color: #1a1a1a;
+  padding: 1.5rem;
+  border-radius: 16px;
+  text-align: left;
+  margin-bottom: 2rem;
+}
+
+.checkoutSummaryCard {
+  background-color: #1a1a1a;
+  padding: 1.5rem;
+  border-radius: 16px;
+  margin-bottom: 2rem;
+}
+
+.summarySection {
+  margin-bottom: 1rem;
+}
+
+.summaryGrid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  border-top: 1px solid #27272a;
+  padding-top: 1rem;
+}
+
+.summaryGrid2Spaced {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  border-top: 1px solid #27272a;
+  padding-top: 1rem;
+  margin-top: 1rem;
+}
+
+.fieldLabelMuted {
+  color: #a1a1aa;
+  font-size: 0.75rem;
+  margin: 0 0 0.25rem;
+}
+
+.fieldLabelMutedMd {
+  color: #a1a1aa;
+  font-size: 0.875rem;
+  margin: 0 0 0.25rem;
+}
+
+.fieldValueStrong {
+  font-weight: 600;
+  margin: 0;
+}
+
+.fieldValueStrongMb {
+  font-weight: 600;
+  margin: 0 0 1rem;
+}
+
+.summaryDate {
+  font-weight: 600;
+  margin: 0;
+  text-transform: capitalize;
+}
+
+.summaryAmount {
+  font-weight: 600;
+  margin: 0;
+  color: #22c55e;
+}
+
+.btnNewBooking {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid #27272a;
+  background-color: transparent;
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-bottom: 0.75rem;
+}
+
+.backNavButton {
+  color: var(--company-primary, #ffd700);
+  background: none;
+  border: none;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-bottom: 2rem;
+  padding: 0;
+}
+
+.flowTitle {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0 0 2rem;
+}
+
+.formStack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.formLabel {
+  display: block;
+  color: #a1a1aa;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.bookNowBtnTight {
+  margin-top: 1rem;
+}
+
+.servicesListPad {
+  margin-bottom: 6rem;
+}
+
+.serviceRow {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #1a1a1a;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.serviceRowSelected {
+  background-color: #27272a;
+  border-color: var(--company-primary, #ffd700);
+}
+
+.serviceThumb {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  background-color: #27272a;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.serviceThumbImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.serviceThumbPlaceholder {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  background-color: #27272a;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #71717a;
+  font-size: 1.5rem;
+}
+
+.serviceContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.serviceTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem;
+  color: #fff;
+}
+
+.serviceRowSelected .serviceTitle {
+  color: var(--company-primary, #ffd700);
+}
+
+.serviceDesc {
+  font-size: 0.75rem;
+  color: #a1a1aa;
+  margin: 0 0 0.5rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.serviceMeta {
+  font-size: 0.875rem;
+  color: #e4e4e7;
+  font-weight: 600;
+  margin: 0;
+}
+
+.toggleCell {
+  display: flex;
+  align-items: center;
+}
+
+.selectionRecap {
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background-color: #1a1a1a;
+  border-radius: 12px;
+}
+
+.selectionRecapTight {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background-color: #1a1a1a;
+  border-radius: 12px;
+}
+
+.selectionRecapHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.overlineCaps {
+  font-size: 0.65rem;
+  color: #a1a1aa;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin: 0;
+}
+
+.ghostLinkBtn {
+  background: none;
+  border: none;
+  color: #a1a1aa;
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.recapNames {
+  font-weight: 600;
+  margin: 0 0 0.25rem;
+}
+
+.recapTotal {
+  font-size: 0.875rem;
+  color: var(--company-primary, #ffd700);
+  margin: 0;
+  font-weight: 600;
+}
+
+.profGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 1rem;
+}
+
+.profCardAny {
+  cursor: pointer;
+  border: 1px dashed var(--company-primary, #ffd700);
+}
+
+.profCardClickable {
+  cursor: pointer;
+}
+
+.profAvatarEmpty {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: #27272a;
+  margin: 0 auto 1rem;
+}
+
+.profAvatarPlaceholder {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: #27272a;
+  margin: 0 auto 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.profAvatarPhoto {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: #27272a;
+  margin: 0 auto 1rem;
+  object-fit: cover;
+  display: block;
+}
+
+.profCardTitle {
+  font-size: 0.875rem;
+  font-weight: 700;
+  margin: 0 0 0.25rem;
+}
+
+.profCardSubtitle {
+  font-size: 0.75rem;
+  color: #a1a1aa;
+  margin: 0 0 0.25rem;
+}
+
+.profRatingStars {
+  font-size: 0.75rem;
+  color: #fbbf24;
+  font-weight: bold;
+}
+
+.profPickerBar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background-color: #1a1a1a;
+  border-radius: 12px;
+}
+
+.profPickerAvatarEmpty {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #27272a;
+  flex-shrink: 0;
+}
+
+.profPickerAvatarImg {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #27272a;
+  flex-shrink: 0;
+  object-fit: cover;
+  display: block;
+}
+
+.profPickerBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.profPickerOverline {
+  font-size: 0.65rem;
+  color: #a1a1aa;
+  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin: 0 0 0.25rem;
+}
+
+.profPickerName {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.monthCaption {
+  color: #a1a1aa;
+  font-size: 0.875rem;
+  margin: 0 0 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.dateScrollDraggable {
+  cursor: grab;
+}
+
+.dateCardNoSelect {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.timeSection {
+  min-height: 150px;
+  padding-bottom: 6rem;
+}
+
+.loadingMuted {
+  color: #a1a1aa;
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.errorNoSlots {
+  color: #ef4444;
+  text-align: center;
+  margin-top: 2rem;
+  font-size: 0.875rem;
+}
+
+/* —— Meus agendamentos (CustomerAppointmentsTracker) —— */
+
+.trackerForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.trackerLabel {
+  display: block;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+  color: #a1a1aa;
+}
+
+.trackerInput {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid #27272a;
+  background-color: #18181b;
+  color: #fff;
+  font-size: 1rem;
+  outline: none;
+}
+
+.trackerError {
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.trackerSubmitBtn {
+  margin-top: 0.5rem;
+  width: 100%;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  background-color: var(--company-primary, #ffd700);
+  color: var(--company-on-primary, #0a0a0a);
+  font-weight: 700;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+}
+
+.trackerSubmitBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.trackerList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.trackerEmpty {
+  text-align: center;
+  padding: 2rem 0;
+  color: #a1a1aa;
+}
+
+.trackerLinkPrimary {
+  margin-top: 1rem;
+  background: none;
+  border: none;
+  color: var(--company-primary, #ffd700);
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.trackerListHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.trackerListTitle {
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+  font-size: 1rem;
+}
+
+.trackerLinkMuted {
+  background: none;
+  border: none;
+  color: #a1a1aa;
+  font-size: 0.875rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.trackerCard {
+  padding: 1.25rem;
+  border-radius: 1rem;
+  background-color: #18181b;
+  border: 1px solid #27272a;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.trackerCardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.trackerServiceTitle {
+  font-weight: 700;
+  color: #fff;
+  font-size: 1rem;
+  margin: 0 0 0.25rem;
+}
+
+.trackerMuted {
+  color: #a1a1aa;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.trackerStatusWrap {
+  text-align: right;
+}
+
+.trackerStatusPill {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background-color: #27272a;
+  color: #a1a1aa;
+}
+
+.trackerStatusPill[data-status='PENDING'] {
+  background-color: var(--company-primary, #ffd700);
+  color: var(--company-on-primary, #0a0a0a);
+}
+
+.trackerStatusPill[data-status='CONFIRMED'],
+.trackerStatusPill[data-status='COMPLETED'] {
+  background-color: #22c55e;
+  color: #000;
+}
+
+.trackerStatusPill[data-status='CANCELLED'] {
+  background-color: #ef4444;
+  color: #fff;
+}
+
+.trackerStatusPill[data-status='NO_SHOW'] {
+  background-color: #f97316;
+  color: #000;
+}
+
+.trackerRowMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #fff;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.trackerIconCal {
+  color: var(--company-primary, #ffd700);
+}
+
+.trackerPrice {
+  margin-left: auto;
+  color: #22c55e;
+  font-weight: 600;
+}
+
+.trackerCancelBtn {
+  margin-top: 0.25rem;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #ef4444;
+  background-color: transparent;
+  color: #ef4444;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.trackerCancelBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Cor da marca: --company-primary + texto sobre ela (--company-on-primary) */
 .themeGold {
   --company-primary: #ffd700;
+  --company-on-primary: #000000;
 }
 .themeAmber {
   --company-primary: #f59e0b;
+  --company-on-primary: #000000;
 }
 .themeOrange {
   --company-primary: #ea580c;
+  --company-on-primary: #ffffff;
 }
 .themeRose {
   --company-primary: #f43f5e;
+  --company-on-primary: #ffffff;
 }
 .themeRed {
   --company-primary: #ef4444;
+  --company-on-primary: #ffffff;
 }
 .themePink {
   --company-primary: #ec4899;
+  --company-on-primary: #000000;
 }
 .themePurple {
   --company-primary: #a855f7;
+  --company-on-primary: #000000;
 }
 .themeIndigo {
   --company-primary: #6366f1;
+  --company-on-primary: #ffffff;
 }
 .themeBlue {
   --company-primary: #3b82f6;
+  --company-on-primary: #ffffff;
 }
 .themeCyan {
   --company-primary: #06b6d4;
+  --company-on-primary: #000000;
 }
 .themeTeal {
   --company-primary: #14b8a6;
+  --company-on-primary: #000000;
 }
 .themeGreen {
   --company-primary: #22c55e;
+  --company-on-primary: #000000;
 }
 .themeLime {
   --company-primary: #84cc16;
+  --company-on-primary: #000000;
 }
 .themeZinc {
   --company-primary: #a1a1aa;
+  --company-on-primary: #000000;
 }

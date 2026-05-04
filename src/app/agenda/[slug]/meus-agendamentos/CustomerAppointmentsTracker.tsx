@@ -4,11 +4,29 @@ import { useState } from 'react';
 import { findCustomerAppointments } from '../../../actions/appointments';
 import { cancelAppointmentByCustomer } from '../../../actions/bookingRules';
 import type { Appointment, Professional, Service } from '@prisma/client';
+import styles from '../agenda.module.css';
 
 type AppointmentRow = Appointment & {
   service: Service | null;
   professional: Professional | null;
 };
+
+function statusLabel(status: string): string {
+  switch (status) {
+    case 'PENDING':
+      return 'Agendado';
+    case 'CONFIRMED':
+      return 'Confirmado';
+    case 'COMPLETED':
+      return 'Concluído';
+    case 'CANCELLED':
+      return 'Cancelado';
+    case 'NO_SHOW':
+      return 'Faltou';
+    default:
+      return status;
+  }
+}
 
 export default function CustomerAppointmentsTracker({ companySlug }: { companySlug: string }) {
   const [name, setName] = useState('');
@@ -21,10 +39,10 @@ export default function CustomerAppointmentsTracker({ companySlug }: { companySl
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!phone) return;
-    
+
     setIsLoading(true);
     setError('');
-    
+
     try {
       const results = await findCustomerAppointments(companySlug, phone);
       setAppointments(results);
@@ -38,11 +56,10 @@ export default function CustomerAppointmentsTracker({ companySlug }: { companySl
 
   const handleCancel = async (appointmentId: string) => {
     if (!confirm('Tem certeza que deseja cancelar este agendamento?')) return;
-    
+
     setCancellingId(appointmentId);
     try {
       await cancelAppointmentByCustomer(appointmentId, phone);
-      // Refresh the list
       const results = await findCustomerAppointments(companySlug, phone);
       setAppointments(results);
     } catch (err) {
@@ -53,17 +70,6 @@ export default function CustomerAppointmentsTracker({ companySlug }: { companySl
     }
   };
 
-  const formatStatus = (status: string) => {
-    switch(status) {
-      case 'PENDING': return { label: 'Agendado', color: 'var(--company-primary)' };
-      case 'CONFIRMED': return { label: 'Confirmado', color: '#22c55e' };
-      case 'COMPLETED': return { label: 'Concluído', color: '#22c55e' };
-      case 'CANCELLED': return { label: 'Cancelado', color: '#ef4444' };
-      case 'NO_SHOW': return { label: 'Faltou', color: '#f97316' };
-      default: return { label: status, color: '#A1A1AA' };
-    }
-  };
-
   const isCancellable = (app: AppointmentRow) => {
     return app.status === 'CONFIRMED' || app.status === 'PENDING';
   };
@@ -71,149 +77,100 @@ export default function CustomerAppointmentsTracker({ companySlug }: { companySl
   return (
     <div>
       {!appointments ? (
-        <form onSubmit={handleSearch} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <form className={styles.trackerForm} onSubmit={handleSearch}>
           <div>
-            <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem', color: '#A1A1AA' }}>
+            <label className={styles.trackerLabel} htmlFor="cat-name">
               Qual o seu nome?
             </label>
-            <input 
-              type="text" 
-              value={name} 
-              onChange={e => setName(e.target.value)} 
+            <input
+              id="cat-name"
+              type="text"
+              className={styles.trackerInput}
+              value={name}
+              onChange={e => setName(e.target.value)}
               required
-              style={{ width: '100%', padding: '1rem', borderRadius: '0.75rem', border: '1px solid #27272A', backgroundColor: '#18181B', color: '#FFF', fontSize: '1rem', outline: 'none' }}
               placeholder="Ex: João Silva"
             />
           </div>
           <div>
-            <label style={{ display: 'block', fontSize: '0.875rem', marginBottom: '0.5rem', color: '#A1A1AA' }}>
+            <label className={styles.trackerLabel} htmlFor="cat-phone">
               Qual o seu telefone / WhatsApp?
             </label>
-            <input 
-              type="tel" 
-              value={phone} 
-              onChange={e => setPhone(e.target.value)} 
+            <input
+              id="cat-phone"
+              type="tel"
+              className={styles.trackerInput}
+              value={phone}
+              onChange={e => setPhone(e.target.value)}
               required
-              style={{ width: '100%', padding: '1rem', borderRadius: '0.75rem', border: '1px solid #27272A', backgroundColor: '#18181B', color: '#FFF', fontSize: '1rem', outline: 'none' }}
               placeholder="(11) 99999-9999"
             />
           </div>
-          
-          {error && <p style={{ color: '#ef4444', fontSize: '0.875rem' }}>{error}</p>}
-          
-          <button 
-            type="submit" 
-            disabled={isLoading || !phone || !name}
-            style={{ 
-              marginTop: '0.5rem',
-              width: '100%', 
-              padding: '1rem', 
-              borderRadius: '0.75rem', 
-              backgroundColor: 'var(--company-primary)', 
-              color: '#000', 
-              fontWeight: 'bold', 
-              fontSize: '1rem', 
-              border: 'none', 
-              cursor: isLoading || !phone || !name ? 'not-allowed' : 'pointer',
-              opacity: isLoading || !phone || !name ? 0.7 : 1
-            }}
-          >
+
+          {error ? <p className={styles.trackerError}>{error}</p> : null}
+
+          <button type="submit" className={styles.trackerSubmitBtn} disabled={isLoading || !phone || !name}>
             {isLoading ? 'Buscando...' : 'Buscar Meus Agendamentos'}
           </button>
         </form>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div className={styles.trackerList}>
           {appointments.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '2rem 0', color: '#A1A1AA' }}>
+            <div className={styles.trackerEmpty}>
               <p>Nenhum agendamento encontrado para o telefone informado.</p>
-              <button 
-                onClick={() => setAppointments(null)} 
-                style={{ marginTop: '1rem', background: 'none', border: 'none', color: 'var(--company-primary)', textDecoration: 'underline', cursor: 'pointer' }}
-              >
+              <button type="button" className={styles.trackerLinkPrimary} onClick={() => setAppointments(null)}>
                 Tentar outro telefone
               </button>
             </div>
           ) : (
             <>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <h3 style={{ fontWeight: 600, color: '#FFF' }}>Seu Histórico</h3>
-                <button 
-                  onClick={() => setAppointments(null)} 
-                  style={{ background: 'none', border: 'none', color: '#A1A1AA', fontSize: '0.875rem', cursor: 'pointer', textDecoration: 'underline' }}
-                >
+              <div className={styles.trackerListHeader}>
+                <h3 className={styles.trackerListTitle}>Seu Histórico</h3>
+                <button type="button" className={styles.trackerLinkMuted} onClick={() => setAppointments(null)}>
                   Nova Busca
                 </button>
               </div>
-              
-              {appointments.map((app) => {
-                const statusInfo = formatStatus(app.status);
+
+              {appointments.map(app => {
                 const appDate = new Date(app.date);
                 const cancellable = isCancellable(app);
                 const isCancelling = cancellingId === app.id;
                 return (
-                  <div key={app.id} style={{ 
-                    padding: '1.25rem', 
-                    borderRadius: '1rem', 
-                    backgroundColor: '#18181B', 
-                    border: '1px solid #27272A',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.75rem'
-                  }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div key={app.id} className={styles.trackerCard}>
+                    <div className={styles.trackerCardTop}>
                       <div>
-                        <h4 style={{ fontWeight: 'bold', color: '#FFF', fontSize: '1rem', marginBottom: '0.25rem' }}>
-                          {app.serviceNames || app.service?.name}
-                        </h4>
-                        <p style={{ color: '#A1A1AA', fontSize: '0.875rem' }}>
-                          Com {app.professional?.name}
-                        </p>
+                        <h4 className={styles.trackerServiceTitle}>{app.serviceNames || app.service?.name}</h4>
+                        <p className={styles.trackerMuted}>Com {app.professional?.name}</p>
                       </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <span style={{ 
-                          padding: '0.25rem 0.75rem', 
-                          borderRadius: '9999px', 
-                          fontSize: '0.75rem', 
-                          fontWeight: 600, 
-                          color: '#000',
-                          backgroundColor: statusInfo.color 
-                        }}>
-                          {statusInfo.label}
+                      <div className={styles.trackerStatusWrap}>
+                        <span className={styles.trackerStatusPill} data-status={app.status}>
+                          {statusLabel(app.status)}
                         </span>
                       </div>
-                    </div>
-                    
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#FFF', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-                      <span style={{ color: 'var(--company-primary)' }}>📅</span>
-                      {appDate.toLocaleDateString('pt-BR')} às {app.startTime}
-                      {app.totalPrice != null && (
-                        <span style={{ marginLeft: 'auto', color: '#22c55e', fontWeight: 600 }}>
-                          R$ {app.totalPrice.toFixed(2).replace('.', ',')}
-                        </span>
-                      )}
                     </div>
 
-                    {/* Botão Cancelar */}
-                    {cancellable && (
+                    <div className={styles.trackerRowMeta}>
+                      <span className={styles.trackerIconCal} aria-hidden>
+                        📅
+                      </span>
+                      {appDate.toLocaleDateString('pt-BR')} às {app.startTime}
+                      {app.totalPrice != null ? (
+                        <span className={styles.trackerPrice}>
+                          R$ {app.totalPrice.toFixed(2).replace('.', ',')}
+                        </span>
+                      ) : null}
+                    </div>
+
+                    {cancellable ? (
                       <button
+                        type="button"
+                        className={styles.trackerCancelBtn}
                         onClick={() => handleCancel(app.id)}
                         disabled={isCancelling}
-                        style={{
-                          marginTop: '0.25rem',
-                          padding: '0.75rem',
-                          borderRadius: '0.5rem',
-                          border: '1px solid #ef4444',
-                          backgroundColor: 'transparent',
-                          color: '#ef4444',
-                          fontWeight: 600,
-                          fontSize: '0.875rem',
-                          cursor: isCancelling ? 'not-allowed' : 'pointer',
-                          opacity: isCancelling ? 0.6 : 1,
-                        }}
                       >
                         {isCancelling ? 'Cancelando...' : '✕ Cancelar Agendamento'}
                       </button>
-                    )}
+                    ) : null}
                   </div>
                 );
               })}

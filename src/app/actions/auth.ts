@@ -36,6 +36,7 @@ async function buildSessionForUser(userId: string, role: UserRole): Promise<Sess
 }
 
 export type LoginState = { error?: string; success?: boolean } | null;
+export type ChangePasswordState = { error?: string; success?: boolean } | null;
 
 export async function loginTenant(prevState: LoginState, formData: FormData): Promise<LoginState> {
   const email = String(formData.get('email') || '').trim().toLowerCase();
@@ -150,4 +151,50 @@ export async function logout() {
   cookieStore.delete('mockRole');
   cookieStore.delete('mockProfessionalId');
   redirect(await loginRedirectPath());
+}
+
+export async function changePassword(prevState: ChangePasswordState, formData: FormData): Promise<ChangePasswordState> {
+  const currentPassword = String(formData.get('currentPassword') || '');
+  const newPassword = String(formData.get('newPassword') || '');
+  const confirmPassword = String(formData.get('confirmPassword') || '');
+
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    return { error: 'Preencha todos os campos' };
+  }
+  if (newPassword !== confirmPassword) {
+    return { error: 'A confirmação da nova senha não confere' };
+  }
+  if (newPassword.length < 8) {
+    return { error: 'A nova senha deve ter pelo menos 8 caracteres' };
+  }
+
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get(getSessionCookieName())?.value;
+    if (!token) return { error: 'Sessão expirada. Faça login novamente.' };
+
+    const { verifySession } = await import('@/lib/auth/session');
+    const session = await verifySession(token);
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.sub },
+      select: { id: true, passwordHash: true, status: true },
+    });
+    if (!user || user.status !== 'ACTIVE') return { error: 'Usuário inválido' };
+
+    const ok = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!ok) return { error: 'Senha atual incorreta' };
+
+    const newHash = await bcrypt.hash(newPassword, 10);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash: newHash },
+      select: { id: true },
+    });
+
+    return { success: true };
+  } catch (error: any) {
+    console.error('Change password error:', error);
+    return { error: error.message || 'Erro ao alterar senha' };
+  }
 }

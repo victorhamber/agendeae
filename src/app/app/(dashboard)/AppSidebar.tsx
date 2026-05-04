@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import styles from '../app.module.css';
+import { logout } from '@/app/actions/auth';
 
 export default function AppSidebar({ 
   role 
@@ -91,6 +92,25 @@ export default function AppSidebar({
               </Link>
             );
           })}
+
+          <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid var(--border)' }}>
+            <Link
+              href="/conta"
+              className={`${styles.navLink} ${pathname === '/conta' ? styles.navLinkActive : ''}`}
+            >
+              Perfil / Conta
+            </Link>
+
+            <form action={logout}>
+              <button
+                type="submit"
+                className={styles.navLink}
+                style={{ width: '100%', textAlign: 'left', background: 'transparent' }}
+              >
+                Sair
+              </button>
+            </form>
+          </div>
         </nav>
         
 

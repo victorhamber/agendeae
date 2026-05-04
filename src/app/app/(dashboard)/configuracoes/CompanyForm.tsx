@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import { updateCompanyInfo, checkSlugAvailability } from '@/app/actions/company';
 import type { Company } from '@prisma/client';
+import styles from '../../app.module.css';
 
 function ImageUploadField({ 
   label, 
@@ -73,67 +74,45 @@ function ImageUploadField({
 
   return (
     <div>
-      <label style={{ display: 'block', fontWeight: 500, marginBottom: '0.25rem' }}>{label}</label>
-      <span style={{ display: 'block', color: 'var(--muted)', fontSize: '0.7rem', marginBottom: '0.5rem' }}>
-        {hint}
-      </span>
+      <label className={`${styles.companyLabel} ${styles.companyLabelTight}`}>{label}</label>
+      <span className={styles.companyHint}>{hint}</span>
       {(exampleDimensions || fileDimensions) && (
-        <span style={{ display: 'block', color: 'var(--muted)', fontSize: '0.7rem', marginBottom: '0.5rem' }}>
+        <span className={styles.companyHint}>
           {exampleDimensions ? <>Ex.: <strong>{exampleDimensions}</strong></> : null}
           {exampleDimensions && fileDimensions ? ' • ' : null}
           {fileDimensions ? <>Arquivo: <strong>{fileDimensions}</strong></> : null}
         </span>
       )}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+      <div className={styles.imageUploadRow}>
         <div 
           onClick={() => fileRef.current?.click()}
-          style={{ 
-            width: aspectLabel === 'cover' ? '120px' : '80px', 
-            height: aspectLabel === 'cover' ? '60px' : '80px', 
-            borderRadius: 'var(--radius)', 
-            border: '2px dashed var(--border)', 
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', overflow: 'hidden',
-            backgroundColor: 'rgba(0,0,0,0.03)', flexShrink: 0,
-            position: 'relative',
-          }}
+          className={`${styles.imageUploadBox} ${aspectLabel === 'cover' ? styles.imageUploadBoxCover : styles.imageUploadBoxLogo}`}
         >
           {preview ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={preview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src={preview} alt="Preview" className={styles.imagePreviewImg} />
           ) : (
-            <span style={{ fontSize: '1.5rem', color: 'var(--muted)' }}>📷</span>
+            <span className={styles.imageEmptyIcon}>📷</span>
           )}
           {isUploading && (
-            <div style={{
-              position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              backgroundColor: 'rgba(0,0,0,0.5)', color: '#fff', fontSize: '0.65rem', fontWeight: 600
-            }}>
+            <div className={styles.uploadOverlay}>
               Enviando...
             </div>
           )}
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+        <div className={styles.imageActions}>
           <button type="button" onClick={() => fileRef.current?.click()}
-            style={{ 
-              padding: '0.4rem 0.75rem', borderRadius: 'var(--radius)', 
-              border: '1px solid var(--border)', backgroundColor: 'transparent', 
-              cursor: 'pointer', fontSize: '0.75rem', fontWeight: 500 
-            }}>
+            className={styles.imageActionBtn}>
             {preview ? 'Trocar' : 'Enviar Imagem'}
           </button>
           {preview && (
             <button type="button" onClick={remove}
-              style={{ 
-                padding: '0.4rem 0.75rem', borderRadius: 'var(--radius)', 
-                border: '1px solid var(--danger, #EF4444)', backgroundColor: 'transparent', 
-                cursor: 'pointer', fontSize: '0.75rem', color: 'var(--danger, #EF4444)', fontWeight: 500 
-              }}>
+              className={`${styles.imageActionBtn} ${styles.imageRemoveBtn}`}>
               Remover
             </button>
           )}
         </div>
-        <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" aria-label={`Selecionar imagem: ${label}`} onChange={handleUpload} style={{ display: 'none' }} />
+        <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" aria-label={`Selecionar imagem: ${label}`} onChange={handleUpload} className={styles.hiddenInput} />
       </div>
     </div>
   );
@@ -214,51 +193,50 @@ export default function CompanyForm({ company }: { company: Company }) {
   return (
     <form onSubmit={handleSubmit} className="grid-2-col">
       {/* Coluna 1: Dados Básicos */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        <div className="grid-2-col" style={{ gap: '1rem' }}>
+      <div className={styles.companyCol}>
+        <div className={`grid-2-col ${styles.companyGridGap}`}>
           <div>
-            <label style={{ display: 'block', fontWeight: 500, marginBottom: '0.5rem' }}>Nome do Negócio</label>
+            <label className={styles.companyLabel}>Nome do Negócio</label>
             <input type="text" className="input" value={name} onChange={e => setName(e.target.value)} aria-label="Nome do negócio" required />
           </div>
           <div>
-            <label style={{ display: 'block', fontWeight: 500, marginBottom: '0.5rem' }}>Segmento / Tag (opcional)</label>
+            <label className={styles.companyLabel}>Segmento / Tag (opcional)</label>
             <input type="text" className="input" value={segment} onChange={e => setSegment(e.target.value)} placeholder="Ex: BARBEARIA" />
           </div>
         </div>
         
         {/* Slug com validação em tempo real */}
         <div>
-          <label style={{ display: 'block', fontWeight: 500, marginBottom: '0.5rem' }}>Link da sua Agenda (Slug)</label>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ color: 'var(--muted)', fontSize: '0.875rem', whiteSpace: 'nowrap' }}>agendeae.com.br/</span>
+          <label className={styles.companyLabel}>Link da sua Agenda (Slug)</label>
+          <div className={styles.companySlugRow}>
+            <span className={styles.companySlugPrefix}>agendeae.com.br/</span>
             <input 
               type="text" className="input" value={slug} 
               onChange={e => handleSlugChange(e.target.value)} 
               required 
               aria-label="Slug (link público da agenda)"
-              style={{ 
-                borderColor: slugError ? 'var(--danger, #EF4444)' : slugOk ? 'var(--success, #22C55E)' : undefined 
-              }}
+              data-invalid={slugError ? 'true' : undefined}
+              data-valid={!slugError && slugOk ? 'true' : undefined}
             />
           </div>
-          {slugError && <p style={{ color: 'var(--danger, #EF4444)', fontSize: '0.75rem', marginTop: '0.25rem' }}>❌ {slugError}</p>}
-          {slugOk && <p style={{ color: 'var(--success, #22C55E)', fontSize: '0.75rem', marginTop: '0.25rem' }}>✅ Link disponível!</p>}
+          {slugError && <p className={styles.companySlugError}>❌ {slugError}</p>}
+          {slugOk && <p className={styles.companySlugOk}>✅ Link disponível!</p>}
         </div>
 
         <div>
-          <label style={{ display: 'block', fontWeight: 500, marginBottom: '0.5rem' }}>Breve Descrição (Bio)</label>
+          <label className={styles.companyLabel}>Breve Descrição (Bio)</label>
           <textarea className="input" value={description} onChange={e => setDescription(e.target.value)} rows={3} placeholder="Ex: Barbearia tradicional com cerveja gelada." />
         </div>
 
         <div>
-          <label style={{ display: 'block', fontWeight: 500, marginBottom: '0.5rem' }}>Endereço (Opcional)</label>
+          <label className={styles.companyLabel}>Endereço (Opcional)</label>
           <input type="text" className="input" value={address} onChange={e => setAddress(e.target.value)} placeholder="Ex: Rua das Flores, 123 - Centro" />
         </div>
       </div>
 
       {/* Coluna 2: Imagens, Design e Contatos */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        <div className="grid-2-col" style={{ gap: '1rem' }}>
+      <div className={styles.companyCol}>
+        <div className={`grid-2-col ${styles.companyGridGap}`}>
           <ImageUploadField 
             label="Logo" 
             hint="Recomendado: Quadrado 400×400px. Formatos: JPG, PNG ou WebP." 
@@ -269,35 +247,35 @@ export default function CompanyForm({ company }: { company: Company }) {
           />
           <ImageUploadField 
             label="Capa (Fundo)" 
-            hint="Recomendado: Paisagem 16:9 (1200×675px). Formatos: JPG, PNG ou WebP."
-            exampleDimensions="1200×675px"
+            hint="Recomendado: Paisagem 2:1 (1200×600px). Formatos: JPG, PNG ou WebP."
+            exampleDimensions="1200×600px"
             currentUrl={coverUrl} 
             onUrlChange={setCoverUrl}
             aspectLabel="cover"
           />
         </div>
 
-        <div className="grid-2-col" style={{ gap: '1rem' }}>
+        <div className={`grid-2-col ${styles.companyGridGap}`}>
           <div>
-            <label style={{ display: 'block', fontWeight: 500, marginBottom: '0.5rem' }}>WhatsApp (Opcional)</label>
+            <label className={styles.companyLabel}>WhatsApp (Opcional)</label>
             <input type="tel" className="input" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} placeholder="(11) 99999-9999" />
           </div>
           <div>
-            <label style={{ display: 'block', fontWeight: 500, marginBottom: '0.5rem' }}>Instagram (Opcional)</label>
+            <label className={styles.companyLabel}>Instagram (Opcional)</label>
             <input type="text" className="input" value={instagram} onChange={e => setInstagram(e.target.value)} placeholder="@suabarbearia" />
           </div>
         </div>
 
         <div>
-          <label style={{ display: 'block', fontWeight: 500, marginBottom: '0.5rem' }}>Cor Primária (Tema)</label>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <input type="color" value={primaryColor} onChange={e => setPrimaryColor(e.target.value)} aria-label="Cor primária da marca" style={{ width: '50px', height: '50px', padding: 0, border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer' }} />
-            <span style={{ color: 'var(--muted)', fontSize: '0.875rem' }}>Cor dos botões e do design do seu link.</span>
+          <label className={styles.companyLabel}>Cor Primária (Tema)</label>
+          <div className={styles.colorRow}>
+            <input type="color" value={primaryColor} onChange={e => setPrimaryColor(e.target.value)} aria-label="Cor primária da marca" className={styles.colorPicker} />
+            <span className={styles.companySlugPrefix}>Cor dos botões e do design do seu link.</span>
           </div>
         </div>
 
-        <div style={{ textAlign: 'right', marginTop: 'auto' }}>
-          <button type="submit" className="btn-primary" disabled={isSubmitting || !!slugError} style={{ width: '100%' }}>
+        <div className={styles.saveRow}>
+          <button type="submit" className={`btn-primary ${styles.saveButtonFull}`} disabled={isSubmitting || !!slugError}>
             {isSubmitting ? 'Salvando...' : 'Salvar Personalização'}
           </button>
         </div>

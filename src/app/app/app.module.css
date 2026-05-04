@@ -314,6 +314,170 @@
   font-size: 0.875rem;
 }
 
+/* ──────────────────────────────────────── */
+/* CompanyForm (Configurações)              */
+/* ──────────────────────────────────────── */
+.companyCol {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.companyGridGap {
+  gap: 1rem;
+}
+
+.companyLabel {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.companyLabelTight {
+  margin-bottom: 0.25rem;
+}
+
+.companyHint {
+  display: block;
+  color: var(--muted);
+  font-size: 0.7rem;
+  margin-bottom: 0.5rem;
+}
+
+.companySlugRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.companySlugPrefix {
+  color: var(--muted);
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.companySlugError {
+  color: var(--danger, #ef4444);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.companySlugOk {
+  color: var(--success, #22c55e);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.companySlugRow :global(input[data-invalid='true']) {
+  border-color: var(--danger, #ef4444);
+}
+
+.companySlugRow :global(input[data-valid='true']) {
+  border-color: var(--success, #22c55e);
+}
+
+.colorRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.colorPicker {
+  width: 50px;
+  height: 50px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.saveRow {
+  text-align: right;
+  margin-top: auto;
+}
+
+.saveButtonFull {
+  width: 100%;
+}
+
+/* ImageUploadField */
+.imageUploadRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.imageUploadBox {
+  border-radius: var(--radius);
+  border: 2px dashed var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  background-color: rgba(0, 0, 0, 0.03);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.imageUploadBoxLogo {
+  width: 80px;
+  height: 80px;
+}
+
+.imageUploadBoxCover {
+  width: 120px;
+  height: 60px;
+}
+
+.imagePreviewImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.imageEmptyIcon {
+  font-size: 1.5rem;
+  color: var(--muted);
+}
+
+.uploadOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+.imageActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.imageActionBtn {
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background-color: transparent;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.imageRemoveBtn {
+  border: 1px solid var(--danger, #ef4444);
+  color: var(--danger, #ef4444);
+}
+
+.hiddenInput {
+  display: none;
+}
+
 /* Desktop defaults — top bar hidden */
 .mobileTopBar {
   display: none;

@@ -12,7 +12,7 @@
 
 .cover {
   width: 100%;
-  aspect-ratio: 4 / 3; /* Imagem retangular (mais esticada horizontalmente) para o menu subir mais */
+  aspect-ratio: 2 / 1; /* Banner mais baixo para o menu subir */
   background-size: cover;
   background-position: center;
   position: relative; /* Removido absolute para participar do fluxo */
@@ -160,10 +160,10 @@
   overflow-x: auto;
   padding-bottom: 1rem;
   margin-bottom: 1rem;
-  scrollbar-width: none; /* Firefox */
 }
 .dateScroll::-webkit-scrollbar {
-  display: none; /* Chrome */
+  width: 0;
+  height: 0;
 }
 
 .dateCard {

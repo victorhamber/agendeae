@@ -6,6 +6,46 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
+function companyPrimaryThemeClass(primaryColor: string | null | undefined): string {
+  const raw = (primaryColor || '').trim().toLowerCase();
+  const hex = raw.startsWith('#') ? raw.slice(1) : raw;
+  if (hex.length !== 6 || !/^[0-9a-f]{6}$/.test(hex)) {
+    return styles.themeGold;
+  }
+  const r = parseInt(hex.slice(0, 2), 16) / 255;
+  const g = parseInt(hex.slice(2, 4), 16) / 255;
+  const b = parseInt(hex.slice(4, 6), 16) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const d = max - min;
+  let h = 0;
+  if (d !== 0) {
+    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+    else if (max === g) h = ((b - r) / d + 2) / 6;
+    else h = ((r - g) / d + 4) / 6;
+  }
+  const hue = h * 360;
+  const s = max === 0 ? 0 : d / max;
+
+  if (s < 0.12) {
+    return styles.themeZinc;
+  }
+  if (hue < 18 || hue >= 345) return styles.themeRed;
+  if (hue < 40) return styles.themeOrange;
+  if (hue < 55) return styles.themeAmber;
+  if (hue < 75) return styles.themeGold;
+  if (hue < 95) return styles.themeLime;
+  if (hue < 150) return styles.themeGreen;
+  if (hue < 175) return styles.themeTeal;
+  if (hue < 200) return styles.themeCyan;
+  if (hue < 230) return styles.themeBlue;
+  if (hue < 260) return styles.themeIndigo;
+  if (hue < 285) return styles.themePurple;
+  if (hue < 320) return styles.themePink;
+  if (hue < 345) return styles.themeRose;
+  return styles.themeGold;
+}
+
 export default async function AgendaPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
@@ -28,23 +68,18 @@ export default async function AgendaPage({ params }: { params: Promise<{ slug: s
     ? profsWithRating.reduce((sum, p) => sum + (p.ratingAverage || 5), 0) / profsWithRating.length
     : 5.0;
 
-  // Inject primary color as a CSS variable at the top level
-  const inlineStyles = {
-    '--company-primary': company.primaryColor || '#FFD700',
-  } as React.CSSProperties;
+  const themeClass = companyPrimaryThemeClass(company.primaryColor);
+  const ratingLabel =
+    companyRating >= 4.5 ? 'Excelentes avaliações' : companyRating >= 3.5 ? 'Boas avaliações' : 'Avaliações';
 
   return (
     <>
-      {/* Força o body desta página para preto se for desktop, para as laterais não ficarem brancas */}
-      <style dangerouslySetInnerHTML={{__html: `body { background-color: #050505 !important; }`}} />
-      <div className={styles.container} style={inlineStyles}>
-        <div 
-          className={styles.cover} 
-          style={{ 
-            backgroundColor: '#111',
-            backgroundImage: company.coverUrl ? `url(${company.coverUrl})` : 'none',
-          }}
-        >
+      <div className={[styles.container, themeClass].filter(Boolean).join(' ')}>
+        <div className={styles.cover}>
+          {company.coverUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={company.coverUrl} alt="" className={styles.coverMedia} />
+          ) : null}
           <div className={styles.coverOverlay}></div>
         </div>
         
@@ -54,8 +89,9 @@ export default async function AgendaPage({ params }: { params: Promise<{ slug: s
               <span className={styles.badge}>{company.segment}</span>
             )}
             <h1 className={styles.companyName}>{company.name}</h1>
-            <div style={{ display: 'flex', gap: '0.5rem', color: '#FFD700', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-              ★ {companyRating.toFixed(1)} <span style={{ color: '#71717A' }}>• {companyRating >= 4.5 ? 'Excelentes avaliações' : companyRating >= 3.5 ? 'Boas avaliações' : 'Avaliações'}</span>
+            <div className={styles.ratingRow}>
+              ★ {companyRating.toFixed(1)}{' '}
+              <span className={styles.ratingMuted}>• {ratingLabel}</span>
             </div>
             
             <p className={styles.companyDescription}>
@@ -65,7 +101,7 @@ export default async function AgendaPage({ params }: { params: Promise<{ slug: s
             {/* Socials & Contact */}
             <div className={styles.socialRow}>
               {company.address && (
-                <span style={{ fontSize: '0.75rem', color: '#A1A1AA' }}>📍 {company.address}</span>
+                <span className={styles.addressLine}>📍 {company.address}</span>
               )}
               {company.instagram && (
                 <a
@@ -106,25 +142,10 @@ export default async function AgendaPage({ params }: { params: Promise<{ slug: s
             maxAdvanceDays={company.bookingRules?.maxAdvanceDays ?? 60}
           />
 
-          <div style={{ marginTop: '2.5rem', padding: '0 1.5rem 2rem 1.5rem' }}>
+          <div className={styles.appointmentsLinkWrap}>
             <Link 
               href={`/${slug}/meus-agendamentos`} 
-              style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                gap: '0.5rem', 
-                backgroundColor: '#18181B', 
-                border: '1px solid #27272A', 
-                color: '#FFF', 
-                padding: '1rem', 
-                borderRadius: '0.75rem', 
-                textDecoration: 'none', 
-                fontSize: '0.875rem', 
-                fontWeight: 500,
-                width: '100%',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
-              }}
+              className={styles.appointmentsLink}
             >
               <span>📅</span> Ver Meus Agendamentos
             </Link>

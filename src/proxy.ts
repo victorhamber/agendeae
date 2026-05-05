@@ -2,6 +2,10 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 function isPublicFile(pathname: string) {
+  // Esses arquivos fazem parte do PWA por empresa e precisam passar pelo rewrite
+  // (ex.: /{slug}/manifest.webmanifest → /agenda/{slug}/manifest.webmanifest).
+  if (pathname.endsWith('/manifest.webmanifest') || pathname.endsWith('/sw.js')) return false;
+
   return (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api') ||
@@ -53,20 +57,18 @@ export async function proxy(request: NextRequest) {
   // DOMÍNIO PRINCIPAL (público)
   // ─────────────────────────────────────────────
 
-  // Bloquear acesso direto a rotas internas pelo domínio principal
+  // Permitir acesso às rotas internas também pelo domínio principal.
+  // Isso evita "quebrar o app" quando subdomínios (app./adm.) não estão configurados.
   if (pathname.startsWith('/app') || pathname.startsWith('/super-admin')) {
-    const sub = pathname.startsWith('/super-admin') ? 'adm' : 'app';
-    const redirectUrl = new URL('/login', `https://${sub}.${baseDomain}`);
-    return NextResponse.redirect(redirectUrl);
+    return NextResponse.next();
   }
 
   // Raiz do domínio principal → site público (não redireciona)
   if (pathname === '/') return NextResponse.next();
 
-  // /login no domínio principal → login do app
+  // /login no domínio principal → login do app (sem depender de subdomínio)
   if (pathname === '/login') {
-    const redirectUrl = new URL('/login', `https://app.${baseDomain}`);
-    return NextResponse.redirect(redirectUrl);
+    return rewriteTo(request, '/app/login');
   }
 
   // Mantém páginas públicas em /agenda/*

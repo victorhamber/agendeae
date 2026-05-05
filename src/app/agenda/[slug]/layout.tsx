@@ -1,5 +1,6 @@
 import styles from './agenda.module.css';
 import type { Metadata } from 'next';
+import { prisma } from '@/lib/prisma';
 
 export async function generateMetadata({
   params,
@@ -7,9 +8,29 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  // Manifest por slug (instala como "app separado")
+
+  const company = await prisma.company.findUnique({
+    where: { slug },
+    select: { name: true, description: true, primaryColor: true, logoUrl: true },
+  });
+
+  const title = company?.name ? `${company.name} | Agendamento` : 'AGENDAAE | Agendamento';
+  const description =
+    company?.description?.trim() ||
+    'Agende seu horário em poucos cliques. Escolha o serviço, o profissional e o melhor horário.';
+
+  const iconUrl = company?.logoUrl || '/next.svg';
+
+  // Manifest + ícones por empresa (melhora elegibilidade do "Instalar app")
   return {
     manifest: `/${slug}/manifest.webmanifest`,
+    title,
+    description,
+    themeColor: company?.primaryColor || '#4f46e5',
+    icons: {
+      icon: [{ url: iconUrl }],
+      apple: [{ url: iconUrl }],
+    },
   };
 }
 

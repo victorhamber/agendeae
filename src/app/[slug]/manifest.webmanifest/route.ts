@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+// Manifest acessível em /{slug}/manifest.webmanifest (sem depender de rewrite/middleware).
 export async function GET(_: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const company = await prisma.company.findUnique({
@@ -20,11 +21,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ slug: stri
     display: 'standalone',
     background_color: '#f8fafc',
     theme_color: themeColor,
-    icons: [
-      // Usa a logo da empresa sempre que existir (mesmo que não seja PNG 512x512).
-      // Evitar "type" e tamanhos fixos reduz falhas de elegibilidade em navegadores quando a logo não bate exatamente.
-      { src: iconUrl, sizes: 'any', purpose: 'any maskable' },
-    ],
+    icons: [{ src: iconUrl, sizes: 'any', purpose: 'any maskable' }],
   };
 
   return new NextResponse(JSON.stringify(manifest), {

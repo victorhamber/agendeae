@@ -100,7 +100,7 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
         <AgendaFilter />
       </Suspense>
 
-      <AgendaTable appointments={appointments} />
+      <AgendaTable appointments={appointments} showFinancials={session.role === 'COMPANY_ADMIN'} />
     </div>
   );
 }

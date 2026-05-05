@@ -603,3 +603,429 @@
     font-size: 1.375rem;
   }
 }
+
+/* ──────────────────────────────────────── */
+/* AgendaTable                              */
+/* ──────────────────────────────────────── */
+
+.agendaSearchWrap {
+  margin-bottom: 1.5rem;
+}
+
+.agendaSearchInput {
+  max-width: 400px;
+}
+
+.agendaStatsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.agendaStatCard {
+  padding: 1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.agendaStatLabel {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-bottom: 0.25rem;
+}
+
+.agendaStatValue {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.agendaStatValuePrimary {
+  color: var(--primary);
+}
+
+.agendaStatValueSuccess {
+  color: var(--success);
+}
+
+.agendaStatValueDanger {
+  color: var(--danger);
+}
+
+.agendaTableShell {
+  border-radius: var(--radius);
+  overflow: hidden;
+  width: 100%;
+  max-width: 100%;
+}
+
+.agendaTableScroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.agendaTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.agendaTableWithFinance {
+  min-width: 800px;
+}
+
+.agendaTableNoFinance {
+  min-width: 680px;
+}
+
+.agendaTheadRow {
+  border-bottom: 1px solid var(--border);
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.agendaTh {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.agendaThRight {
+  padding: 1rem;
+  text-align: right;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.agendaEmptyCell {
+  padding: 2rem;
+  text-align: center;
+  color: var(--muted);
+}
+
+.agendaRow {
+  border-bottom: 1px solid var(--border);
+}
+
+.agendaRowCancelled {
+  opacity: 0.5;
+}
+
+.agendaTd {
+  padding: 1rem;
+}
+
+.agendaTdRight {
+  padding: 1rem;
+  text-align: right;
+}
+
+.agendaDateLine {
+  font-weight: 500;
+}
+
+.agendaTimeLine {
+  color: var(--primary);
+  font-weight: bold;
+}
+
+.agendaCustomerName {
+  font-weight: 500;
+}
+
+.agendaCustomerPhone {
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.agendaValueCell {
+  color: var(--success);
+  font-weight: 500;
+}
+
+/* ──────────────────────────────────────── */
+/* ProfessionalForm                         */
+/* ──────────────────────────────────────── */
+
+.profFormEditLinkBtn {
+  color: var(--primary);
+  font-weight: 500;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.profFormModalBackdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 100;
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+
+.profFormModalPanel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 95%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background-color: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 1.5rem;
+  z-index: 101;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.profFormModalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.profFormModalTitle {
+  font-weight: bold;
+  font-size: 1.125rem;
+}
+
+.profFormModalClose {
+  font-size: 1.25rem;
+  color: var(--muted);
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  line-height: 1;
+}
+
+.profFormForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.profFormPhotoRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.profFormAvatarCircle {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 2px dashed var(--border);
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.03);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.profFormLabel {
+  display: block;
+  font-size: 0.8rem;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+}
+
+.profFormGrid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.profFormDividerBlock {
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+}
+
+.profFormSectionTitle {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 0.75rem;
+}
+
+.profFormHelpText {
+  font-size: 0.7rem;
+  color: var(--muted);
+  margin-top: 0.35rem;
+  line-height: 1.4;
+}
+
+.profFormInputNarrow {
+  max-width: 120px;
+}
+
+.profFormFooter {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.profFormBtnSecondary {
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--radius);
+  background-color: transparent;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.profFormPhotoHint {
+  font-size: 0.65rem;
+  color: var(--muted);
+}
+
+/* ──────────────────────────────────────── */
+/* Relatórios (page)                        */
+/* ──────────────────────────────────────── */
+
+.relatorioHeaderDesc {
+  margin-top: 0.35rem;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+
+.relatorioStack {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  margin-top: 1.5rem;
+}
+
+.relatorioCard {
+  padding: 1.5rem;
+  border-radius: var(--radius);
+}
+
+.relatorioCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1rem;
+}
+
+.relatorioProfAvatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: #27272a;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.relatorioProfAvatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.relatorioName {
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+.relatorioSpecialty {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.relatorioCommissionHint {
+  color: var(--muted);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.relatorioRatingBlock {
+  margin-left: auto;
+  text-align: right;
+}
+
+.relatorioRatingValue {
+  font-size: 1.5rem;
+  color: #fbbf24;
+  font-weight: bold;
+}
+
+.relatorioRatingLabel {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.relatorioKpiValue {
+  font-size: 1.35rem;
+  font-weight: bold;
+}
+
+.relatorioTableScroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.relatorioTable {
+  width: 100%;
+  min-width: 780px;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.relatorioTheadRow {
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  text-align: left;
+}
+
+.relatorioTh {
+  padding: 0.5rem 0;
+  font-weight: 500;
+}
+
+.relatorioThRight {
+  padding: 0.5rem 0;
+  font-weight: 500;
+  text-align: right;
+}
+
+.relatorioTbodyRow {
+  border-bottom: 1px solid var(--border);
+}
+
+.relatorioTd {
+  padding: 0.75rem 0;
+}
+
+.relatorioTdRight {
+  padding: 0.75rem 0;
+  text-align: right;
+}
+
+.relatorioTdRepasse {
+  color: var(--primary);
+}
+
+.relatorioTdRating {
+  color: #fbbf24;
+}
+
+.relatorioEmpty {
+  color: var(--muted);
+  font-size: 0.875rem;
+  text-align: center;
+  padding: 1rem;
+}

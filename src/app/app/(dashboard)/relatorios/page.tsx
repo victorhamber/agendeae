@@ -3,7 +3,8 @@ import { Suspense } from 'react';
 import AgendaFilter from '../agenda/AgendaFilter';
 import DeleteAppointmentButton from './DeleteAppointmentButton';
 import { prisma } from '@/lib/prisma';
-import { requireCompanySession } from '@/lib/auth/server';
+import { requireCompanyAdminSession } from '@/lib/auth/server';
+import { splitAppointmentGross } from '@/lib/commission';
 
 function getDateRange(filtro: string, de?: string, ate?: string) {
   const today = new Date();
@@ -23,7 +24,7 @@ function getDateRange(filtro: string, de?: string, ate?: string) {
       return { gte: tomorrow, lt: dayAfter, label: 'Amanhã' };
     }
     case 'semana': {
-      const dayOfWeek = today.getDay(); // 0 = Sunday
+      const dayOfWeek = today.getDay();
       const startOfWeek = new Date(today);
       startOfWeek.setDate(today.getDate() - dayOfWeek);
       const endOfWeek = new Date(startOfWeek);
@@ -48,63 +49,73 @@ function getDateRange(filtro: string, de?: string, ate?: string) {
     default: {
       const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
       const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-      return { gte: startOfMonth, lt: endOfMonth, label: 'Este Mês' }; // Default para relatórios costuma ser Mês
+      return { gte: startOfMonth, lt: endOfMonth, label: 'Este Mês' };
     }
   }
 }
 
+function formatBrl(n: number) {
+  return `R$ ${n.toFixed(2).replace('.', ',')}`;
+}
+
 export default async function RelatoriosPage({ searchParams }: { searchParams: Promise<{ filtro?: string; de?: string; ate?: string }> }) {
   const params = await searchParams;
-  const session = await requireCompanySession();
+  const session = await requireCompanyAdminSession();
   const company = await prisma.company.findUnique({ where: { id: session.companyId } });
-  
+
   if (!company) {
     return <div>Empresa não encontrada.</div>;
   }
 
-  // Se não tem filtro na URL, o padrão do relatório será 'mes'
   const filtro = params.filtro || 'mes';
   const range = getDateRange(filtro, params.de, params.ate);
 
-  // Buscar todos os profissionais ativos
   const professionals = await prisma.professional.findMany({
-    where: { companyId: company.id, status: 'ACTIVE' }
+    where: { companyId: company.id, status: 'ACTIVE' },
   });
 
-  // Buscar atendimentos concluídos no período
   const completedAppointments = await prisma.appointment.findMany({
     where: {
       companyId: company.id,
       status: 'COMPLETED',
-      date: { gte: range.gte, lt: range.lt }
+      date: { gte: range.gte, lt: range.lt },
     },
-    orderBy: [
-      { date: 'desc' },
-      { startTime: 'desc' }
-    ],
+    orderBy: [{ date: 'desc' }, { startTime: 'desc' }],
     include: {
       service: true,
-      professional: true
-    }
+      professional: true,
+    },
   });
 
-  // Agrupar os dados por profissional
   const reportData = professionals.map(prof => {
     const profAppointments = completedAppointments.filter(app => app.professionalId === prof.id);
-    const totalRevenue = profAppointments.reduce((acc, curr) => acc + (curr.totalPrice || curr.service.price), 0);
     const servicesCount = profAppointments.length;
-    
-    // Calcular avaliação baseada nos atendimentos (se houver rating)
+
+    let totalGross = 0;
+    let totalProfessionalShare = 0;
+    let totalCompanyNet = 0;
+
+    for (const app of profAppointments) {
+      const gross = app.totalPrice ?? app.service.price;
+      totalGross += gross;
+      const split = splitAppointmentGross(gross, prof.commissionPercent);
+      totalProfessionalShare += split.professionalShare;
+      totalCompanyNet += split.companyNet;
+    }
+
     const ratedAppointments = profAppointments.filter(app => app.rating !== null);
     const ratingSum = ratedAppointments.reduce((acc, curr) => acc + (curr.rating || 0), 0);
-    const calculatedRating = ratedAppointments.length > 0 ? (ratingSum / ratedAppointments.length) : (prof.ratingAverage || 5.0);
+    const calculatedRating =
+      ratedAppointments.length > 0 ? ratingSum / ratedAppointments.length : prof.ratingAverage || 5.0;
 
     return {
       ...prof,
-      totalRevenue,
+      totalGross,
+      totalProfessionalShare,
+      totalCompanyNet,
       servicesCount,
       calculatedRating,
-      appointments: profAppointments
+      appointments: profAppointments,
     };
   });
 
@@ -112,75 +123,102 @@ export default async function RelatoriosPage({ searchParams }: { searchParams: P
     <div>
       <header className={styles.header}>
         <h1 className={styles.title}>Relatórios de Atendimentos</h1>
+        <p className={styles.relatorioHeaderDesc}>
+          Valores com reparte conforme o percentual configurado em cada profissional. Somente administradores veem esta página.
+        </p>
       </header>
 
       <Suspense fallback={<div>Carregando filtros...</div>}>
         <AgendaFilter />
       </Suspense>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '2rem', marginTop: '1.5rem' }}>
+      <div className={styles.relatorioStack}>
         {reportData.map(data => (
-          <div key={data.id} className="glass" style={{ padding: '1.5rem', borderRadius: 'var(--radius)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
-              <div style={{ 
-                width: '64px', height: '64px', borderRadius: '50%', backgroundColor: '#27272A',
-                backgroundImage: data.photoUrl ? `url(${data.photoUrl})` : 'none',
-                backgroundSize: 'cover', backgroundPosition: 'center'
-              }}></div>
-              <div>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>{data.name}</h2>
-                <p style={{ color: 'var(--muted)', fontSize: '0.875rem' }}>{data.specialty}</p>
+          <div key={data.id} className={`glass ${styles.relatorioCard}`}>
+            <div className={styles.relatorioCardHeader}>
+              <div className={styles.relatorioProfAvatar}>
+                {data.photoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={data.photoUrl} alt="" className={styles.relatorioProfAvatarImg} />
+                ) : null}
               </div>
-              <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
-                <p style={{ fontSize: '1.5rem', color: '#FBBF24', fontWeight: 'bold' }}>★ {data.calculatedRating.toFixed(1)}</p>
-                <p style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>Avaliação Média</p>
+              <div>
+                <h2 className={styles.relatorioName}>{data.name}</h2>
+                <p className={styles.relatorioSpecialty}>{data.specialty}</p>
+                <p className={styles.relatorioCommissionHint}>
+                  Repasse configurado: {data.commissionPercent.toFixed(0)}% do valor bruto por atendimento
+                </p>
+              </div>
+              <div className={styles.relatorioRatingBlock}>
+                <p className={styles.relatorioRatingValue}>★ {data.calculatedRating.toFixed(1)}</p>
+                <p className={styles.relatorioRatingLabel}>Avaliação média</p>
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-              <div style={{ padding: '1rem', backgroundColor: 'rgba(0,0,0,0.02)', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
-                <p style={{ fontSize: '0.875rem', color: 'var(--muted)' }}>Atendimentos</p>
-                <p style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{data.servicesCount}</p>
+            <div className={styles.agendaStatsGrid}>
+              <div className={styles.agendaStatCard}>
+                <p className={styles.agendaStatLabel}>Atendimentos</p>
+                <p className={styles.agendaStatValue}>{data.servicesCount}</p>
               </div>
-              <div style={{ padding: '1rem', backgroundColor: 'rgba(0,0,0,0.02)', borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
-                <p style={{ fontSize: '0.875rem', color: 'var(--muted)' }}>Receita Gerada</p>
-                <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--success)' }}>R$ {data.totalRevenue.toFixed(2).replace('.', ',')}</p>
+              <div className={styles.agendaStatCard}>
+                <p className={styles.agendaStatLabel}>Valor bruto</p>
+                <p className={`${styles.relatorioKpiValue} ${styles.agendaStatValueSuccess}`}>{formatBrl(data.totalGross)}</p>
+              </div>
+              <div className={styles.agendaStatCard}>
+                <p className={styles.agendaStatLabel}>Repasse ao profissional</p>
+                <p className={`${styles.relatorioKpiValue} ${styles.agendaStatValuePrimary}`}>
+                  {formatBrl(data.totalProfessionalShare)}
+                </p>
+              </div>
+              <div className={styles.agendaStatCard}>
+                <p className={styles.agendaStatLabel}>Líquido empresa (após repasse)</p>
+                <p className={styles.relatorioKpiValue}>{formatBrl(data.totalCompanyNet)}</p>
               </div>
             </div>
 
             {data.appointments.length > 0 ? (
-              <div className="table-responsive" style={{ width: '100%', overflowX: 'auto' }}>
-                <table style={{ width: '100%', minWidth: '600px', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+              <div className={`table-responsive ${styles.relatorioTableScroll}`}>
+                <table className={styles.relatorioTable}>
                   <thead>
-                    <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--muted)', textAlign: 'left' }}>
-                      <th style={{ padding: '0.5rem 0', fontWeight: 500 }}>Data</th>
-                      <th style={{ padding: '0.5rem 0', fontWeight: 500 }}>Serviço(s)</th>
-                      <th style={{ padding: '0.5rem 0', fontWeight: 500 }}>Valor</th>
-                      <th style={{ padding: '0.5rem 0', fontWeight: 500 }}>Avaliação</th>
-                      <th style={{ padding: '0.5rem 0', fontWeight: 500, textAlign: 'right' }}>Ações</th>
+                    <tr className={styles.relatorioTheadRow}>
+                      <th className={styles.relatorioTh}>Data</th>
+                      <th className={styles.relatorioTh}>Serviço(s)</th>
+                      <th className={styles.relatorioTh}>Valor bruto</th>
+                      <th className={styles.relatorioTh}>Repasse prof.</th>
+                      <th className={styles.relatorioTh}>Líquido empresa</th>
+                      <th className={styles.relatorioTh}>Avaliação</th>
+                      <th className={styles.relatorioThRight}>Ações</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {data.appointments.map(app => (
-                      <tr key={app.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                        <td style={{ padding: '0.75rem 0' }}>{app.date.toLocaleDateString('pt-BR')} às {app.startTime}</td>
-                        <td style={{ padding: '0.75rem 0' }}>{app.serviceNames || app.service.name}</td>
-                        <td style={{ padding: '0.75rem 0' }}>R$ {(app.totalPrice || app.service.price).toFixed(2).replace('.', ',')}</td>
-                        <td style={{ padding: '0.75rem 0', color: '#FBBF24' }}>
-                          {app.rating ? `★ ${app.rating.toFixed(1)}` : 'S/ Avaliação'}
-                        </td>
-                        <td style={{ padding: '0.75rem 0', textAlign: 'right' }}>
-                          <DeleteAppointmentButton id={app.id} />
-                        </td>
-                      </tr>
-                    ))}
+                    {data.appointments.map(app => {
+                      const gross = app.totalPrice ?? app.service.price;
+                      const split = splitAppointmentGross(gross, data.commissionPercent);
+                      return (
+                        <tr key={app.id} className={styles.relatorioTbodyRow}>
+                          <td className={styles.relatorioTd}>
+                            {app.date.toLocaleDateString('pt-BR')} às {app.startTime}
+                          </td>
+                          <td className={styles.relatorioTd}>{app.serviceNames || app.service.name}</td>
+                          <td className={styles.relatorioTd}>{formatBrl(split.gross)}</td>
+                          <td className={`${styles.relatorioTd} ${styles.relatorioTdRepasse}`}>
+                            {formatBrl(split.professionalShare)}
+                          </td>
+                          <td className={styles.relatorioTd}>{formatBrl(split.companyNet)}</td>
+                          <td className={`${styles.relatorioTd} ${styles.relatorioTdRating}`}>
+                            {app.rating ? `★ ${app.rating.toFixed(1)}` : 'S/ avaliação'}
+                          </td>
+                          <td className={`${styles.relatorioTd} ${styles.relatorioTdRight}`}>
+                            <DeleteAppointmentButton id={app.id} />
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
             ) : (
-              <p style={{ color: 'var(--muted)', fontSize: '0.875rem', textAlign: 'center', padding: '1rem' }}>
-                Nenhum atendimento concluído neste período.
-              </p>
+              <p className={styles.relatorioEmpty}>Nenhum atendimento concluído neste período.</p>
             )}
           </div>
         ))}

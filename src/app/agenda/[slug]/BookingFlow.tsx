@@ -149,6 +149,8 @@ export default function BookingFlow({
     }
   };
 
+  // Horários: `companyId` vem das props (página resolveu pelo slug); `selectedProfessional` só existe
+  // porque veio da lista `company.professionals`. O servidor recoloca `companyId` nas queries de conflito.
   useEffect(() => {
     if (selectedProfessional && selectedDateObj && selectedServices.length > 0) {
       const fetchTimes = async () => {
@@ -183,6 +185,7 @@ export default function BookingFlow({
 
     setIsSubmitting(true);
     try {
+      // Server action valida `professionalId` ∈ `companyId` e conflitos com filtro por empresa.
       await createAppointment({
         companyId,
         professionalId: selectedProfessional.id,

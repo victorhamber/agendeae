@@ -41,6 +41,13 @@ export async function requireCompanySession() {
   return session as SessionPayload & { companyId: string; role: Extract<UserRole, 'COMPANY_ADMIN' | 'PROFESSIONAL'> };
 }
 
+/** Apenas dono da empresa (sem acesso de profissional). */
+export async function requireCompanyAdminSession() {
+  const session = await requireRole(['COMPANY_ADMIN']);
+  if (!session.companyId) redirect(await loginRedirectPath());
+  return session as SessionPayload & { companyId: string; role: 'COMPANY_ADMIN' };
+}
+
 export async function requireSuperAdminSession() {
   return await requireRole(['SUPER_ADMIN']);
 }

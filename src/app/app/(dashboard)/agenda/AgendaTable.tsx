@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import StatusSelect from './StatusSelect';
 import type { Appointment, Customer, Professional, Service } from '@prisma/client';
+import styles from '../../app.module.css';
 
 type AppointmentRow = Appointment & {
   customer: Customer;
@@ -10,7 +11,14 @@ type AppointmentRow = Appointment & {
   professional: Professional;
 };
 
-export default function AgendaTable({ appointments }: { appointments: AppointmentRow[] }) {
+export default function AgendaTable({
+  appointments,
+  showFinancials = true,
+}: {
+  appointments: AppointmentRow[];
+  /** Profissional logado não vê valores monetários (repasse/comissão). */
+  showFinancials?: boolean;
+}) {
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredAppointments = appointments.filter(app => {
@@ -24,97 +32,115 @@ export default function AgendaTable({ appointments }: { appointments: Appointmen
   const confirmedCount = filteredAppointments.filter(a => a.status === 'CONFIRMED').length;
   const completedCount = filteredAppointments.filter(a => a.status === 'COMPLETED').length;
   const cancelledCount = filteredAppointments.filter(a => a.status === 'CANCELLED').length;
-  const totalRevenue = filteredAppointments
-    .filter(a => !['CANCELLED', 'NO_SHOW'].includes(a.status))
-    .reduce((sum, a) => sum + (a.totalPrice || a.service.price), 0);
+  const totalRevenue = showFinancials
+    ? filteredAppointments
+        .filter(a => !['CANCELLED', 'NO_SHOW'].includes(a.status))
+        .reduce((sum, a) => sum + (a.totalPrice || a.service.price), 0)
+    : 0;
 
   const today = new Date();
+  const colCount = showFinancials ? 6 : 5;
   today.setHours(0, 0, 0, 0);
+
+  const tableClass = `${styles.agendaTable} ${showFinancials ? styles.agendaTableWithFinance : styles.agendaTableNoFinance}`;
 
   return (
     <div>
-      <div style={{ marginBottom: '1.5rem' }}>
-        <input 
-          type="text" 
-          placeholder="Pesquisar por cliente (nome ou telefone)..." 
+      <div className={styles.agendaSearchWrap}>
+        <input
+          type="text"
+          placeholder="Pesquisar por cliente (nome ou telefone)..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="input"
-          style={{ maxWidth: '400px' }}
+          onChange={e => setSearchTerm(e.target.value)}
+          className={`input ${styles.agendaSearchInput}`}
         />
       </div>
 
-      {/* Mini Stats do período selecionado */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-        <div style={{ padding: '1rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)', backgroundColor: 'rgba(0,0,0,0.02)' }}>
-          <p style={{ fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>Total</p>
-          <p style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>{totalAppointments}</p>
+      <div className={styles.agendaStatsGrid}>
+        <div className={styles.agendaStatCard}>
+          <p className={styles.agendaStatLabel}>Total</p>
+          <p className={styles.agendaStatValue}>{totalAppointments}</p>
         </div>
-        <div style={{ padding: '1rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)', backgroundColor: 'rgba(0,0,0,0.02)' }}>
-          <p style={{ fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>Confirmados</p>
-          <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--primary)' }}>{confirmedCount}</p>
+        <div className={styles.agendaStatCard}>
+          <p className={styles.agendaStatLabel}>Confirmados</p>
+          <p className={`${styles.agendaStatValue} ${styles.agendaStatValuePrimary}`}>{confirmedCount}</p>
         </div>
-        <div style={{ padding: '1rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)', backgroundColor: 'rgba(0,0,0,0.02)' }}>
-          <p style={{ fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>Concluídos</p>
-          <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--success)' }}>{completedCount}</p>
+        <div className={styles.agendaStatCard}>
+          <p className={styles.agendaStatLabel}>Concluídos</p>
+          <p className={`${styles.agendaStatValue} ${styles.agendaStatValueSuccess}`}>{completedCount}</p>
         </div>
-        <div style={{ padding: '1rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)', backgroundColor: 'rgba(0,0,0,0.02)' }}>
-          <p style={{ fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>Cancelados</p>
-          <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--danger)' }}>{cancelledCount}</p>
+        <div className={styles.agendaStatCard}>
+          <p className={styles.agendaStatLabel}>Cancelados</p>
+          <p className={`${styles.agendaStatValue} ${styles.agendaStatValueDanger}`}>{cancelledCount}</p>
         </div>
-        <div style={{ padding: '1rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)', backgroundColor: 'rgba(0,0,0,0.02)' }}>
-          <p style={{ fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>Receita</p>
-          <p style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--success)' }}>R$ {totalRevenue.toFixed(2).replace('.', ',')}</p>
-        </div>
+        {showFinancials ? (
+          <div className={styles.agendaStatCard}>
+            <p className={styles.agendaStatLabel}>Receita (bruto)</p>
+            <p className={`${styles.agendaStatValue} ${styles.agendaStatValueSuccess}`}>
+              R$ {totalRevenue.toFixed(2).replace('.', ',')}
+            </p>
+          </div>
+        ) : null}
       </div>
 
-      <div className="glass" style={{ borderRadius: 'var(--radius)', overflow: 'hidden', width: '100%', maxWidth: '100%' }}>
-        <div className="table-responsive" style={{ width: '100%', overflowX: 'auto' }}>
-          <table style={{ width: '100%', minWidth: '800px', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ borderBottom: '1px solid var(--border)', backgroundColor: 'rgba(0,0,0,0.02)' }}>
-              <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 500, color: 'var(--muted)' }}>Data e Hora</th>
-              <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 500, color: 'var(--muted)' }}>Cliente</th>
-              <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 500, color: 'var(--muted)' }}>Serviço(s)</th>
-              <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 500, color: 'var(--muted)' }}>Valor</th>
-              <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 500, color: 'var(--muted)' }}>Profissional</th>
-              <th style={{ padding: '1rem', textAlign: 'right', fontWeight: 500, color: 'var(--muted)' }}>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredAppointments.length === 0 ? (
-              <tr>
-                <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted)' }}>
-                  {appointments.length === 0 
-                    ? 'Nenhum agendamento encontrado para este período.'
-                    : 'Nenhum agendamento encontrado para sua pesquisa.'}
-                </td>
+      <div className={`glass ${styles.agendaTableShell}`}>
+        <div className={`table-responsive ${styles.agendaTableScroll}`}>
+          <table className={tableClass}>
+            <thead>
+              <tr className={styles.agendaTheadRow}>
+                <th className={styles.agendaTh}>Data e Hora</th>
+                <th className={styles.agendaTh}>Cliente</th>
+                <th className={styles.agendaTh}>Serviço(s)</th>
+                {showFinancials ? <th className={styles.agendaTh}>Valor</th> : null}
+                <th className={styles.agendaTh}>Profissional</th>
+                <th className={styles.agendaThRight}>Status</th>
               </tr>
-            ) : (
-              filteredAppointments.map((app) => {
-                const isToday = new Date(app.date).getTime() === today.getTime();
-                return (
-                  <tr key={app.id} style={{ borderBottom: '1px solid var(--border)', opacity: app.status === 'CANCELLED' ? 0.5 : 1 }}>
-                    <td style={{ padding: '1rem' }}>
-                      <div style={{ fontWeight: 500 }}>{isToday ? 'Hoje' : new Date(app.date).toLocaleDateString('pt-BR')}</div>
-                      <div style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{app.startTime} - {app.endTime}</div>
-                    </td>
-                    <td style={{ padding: '1rem' }}>
-                      <div style={{ fontWeight: 500 }}>{app.customer.name}</div>
-                      <div style={{ fontSize: '0.875rem', color: 'var(--muted)' }}>{app.customer.whatsapp}</div>
-                    </td>
-                    <td style={{ padding: '1rem' }}>{app.serviceNames || app.service.name}</td>
-                    <td style={{ padding: '1rem', color: 'var(--success)', fontWeight: 500 }}>R$ {(app.totalPrice || app.service.price).toFixed(2).replace('.', ',')}</td>
-                    <td style={{ padding: '1rem' }}>{app.professional.name}</td>
-                    <td style={{ padding: '1rem', textAlign: 'right' }}>
-                      <StatusSelect appointmentId={app.id} currentStatus={app.status} />
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filteredAppointments.length === 0 ? (
+                <tr>
+                  <td colSpan={colCount} className={styles.agendaEmptyCell}>
+                    {appointments.length === 0
+                      ? 'Nenhum agendamento encontrado para este período.'
+                      : 'Nenhum agendamento encontrado para sua pesquisa.'}
+                  </td>
+                </tr>
+              ) : (
+                filteredAppointments.map(app => {
+                  const isToday = new Date(app.date).getTime() === today.getTime();
+                  return (
+                    <tr
+                      key={app.id}
+                      className={`${styles.agendaRow} ${app.status === 'CANCELLED' ? styles.agendaRowCancelled : ''}`}
+                    >
+                      <td className={styles.agendaTd}>
+                        <div className={styles.agendaDateLine}>
+                          {isToday ? 'Hoje' : new Date(app.date).toLocaleDateString('pt-BR')}
+                        </div>
+                        <div className={styles.agendaTimeLine}>
+                          {app.startTime} - {app.endTime}
+                        </div>
+                      </td>
+                      <td className={styles.agendaTd}>
+                        <div className={styles.agendaCustomerName}>{app.customer.name}</div>
+                        <div className={styles.agendaCustomerPhone}>{app.customer.whatsapp}</div>
+                      </td>
+                      <td className={styles.agendaTd}>{app.serviceNames || app.service.name}</td>
+                      {showFinancials ? (
+                        <td className={`${styles.agendaTd} ${styles.agendaValueCell}`}>
+                          R$ {(app.totalPrice || app.service.price).toFixed(2).replace('.', ',')}
+                        </td>
+                      ) : null}
+                      <td className={styles.agendaTd}>{app.professional.name}</td>
+                      <td className={styles.agendaTdRight}>
+                        <StatusSelect appointmentId={app.id} currentStatus={app.status} />
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

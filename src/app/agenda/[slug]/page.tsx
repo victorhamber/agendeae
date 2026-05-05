@@ -91,7 +91,11 @@ export default async function AgendaPage({ params }: { params: Promise<{ slug: s
             </div>
           </div>
 
-          {/* Render the Client Component containing the interactive flow */}
+          {/*
+            Fluxo multi-tenant: slug (URL) → esta empresa (`company.id`) → BookingFlow só lista
+            serviços/profissionais desta empresa; ao confirmar, `createAppointment` valida de novo
+            `companyId` + `professionalId` e aplica conflitos com filtro por empresa.
+          */}
           <BookingFlow 
             services={company.services} 
             professionals={company.professionals} 

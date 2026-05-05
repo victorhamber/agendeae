@@ -1,5 +1,9 @@
 'use server';
 
+/**
+ * Reserva pública: `/{slug}` carrega `company` → `BookingFlow` envia `companyId` + ids validados na UI.
+ * `createAppointment` exige `professionalId` pertencente a `companyId` e cruza conflitos também por `companyId`.
+ */
 import { prisma } from '@/lib/prisma';
 
 function timeToMinutes(timeStr: string): number {
@@ -81,7 +85,7 @@ export async function createAppointment(data: {
   const endMinutes = timeToMinutes(data.startTime) + totalDuration;
   const endTime = minutesToTime(endMinutes);
 
-  // Validar disponibilidade e conflitos (server-side)
+  // Disponibilidade + conflitos (sempre `companyId` + `professionalId`, alinhado a `availability.ts`)
   const dayOfWeek = date.getDay();
   const availability = await prisma.availability.findFirst({
     where: { professionalId: data.professionalId, dayOfWeek, status: 'ACTIVE' },
@@ -100,7 +104,11 @@ export async function createAppointment(data: {
   endOfDay.setHours(23, 59, 59, 999);
 
   const blockedTimes = await prisma.blockedTime.findMany({
-    where: { professionalId: data.professionalId, date: { gte: startOfDay, lte: endOfDay } },
+    where: {
+      companyId: data.companyId,
+      professionalId: data.professionalId,
+      date: { gte: startOfDay, lte: endOfDay },
+    },
   });
   for (const block of blockedTimes) {
     const bStart = timeToMinutes(block.startTime);
@@ -110,6 +118,7 @@ export async function createAppointment(data: {
 
   const existing = await prisma.appointment.findMany({
     where: {
+      companyId: data.companyId,
       professionalId: data.professionalId,
       date: { gte: startOfDay, lte: endOfDay },
       status: { notIn: ['CANCELLED', 'NO_SHOW'] },

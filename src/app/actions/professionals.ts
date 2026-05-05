@@ -6,8 +6,15 @@ import { requireCompanySession } from '@/lib/auth/server';
 
 import bcrypt from 'bcryptjs';
 
-export async function createProfessional(data: { name: string, specialty: string, email?: string, password?: string }) {
+export async function createProfessional(data: {
+  name: string;
+  specialty: string;
+  email?: string;
+  password?: string;
+  commissionPercent?: number;
+}) {
   const session = await requireCompanySession();
+  if (session.role !== 'COMPANY_ADMIN') throw new Error('Apenas o administrador pode cadastrar profissionais.');
   let userId = null;
 
   if (data.email && data.password) {
@@ -29,6 +36,11 @@ export async function createProfessional(data: { name: string, specialty: string
     userId = newUser.id;
   }
 
+  const pct =
+    typeof data.commissionPercent === 'number'
+      ? Math.min(100, Math.max(0, data.commissionPercent))
+      : 0;
+
   await prisma.professional.create({
     data: {
       companyId: session.companyId,
@@ -36,16 +48,19 @@ export async function createProfessional(data: { name: string, specialty: string
       specialty: data.specialty,
       email: data.email || null,
       userId,
-      status: 'ACTIVE'
+      status: 'ACTIVE',
+      commissionPercent: pct,
     }
   });
 
   revalidatePath('/app/profissionais');
+  revalidatePath('/app/relatorios');
   return { success: true };
 }
 
 export async function deleteProfessional(id: string) {
   const session = await requireCompanySession();
+  if (session.role !== 'COMPANY_ADMIN') throw new Error('Sem permissão');
   const prof = await prisma.professional.findUnique({ where: { id }, select: { companyId: true } });
   if (!prof || prof.companyId !== session.companyId) throw new Error('Sem permissão');
   await prisma.professional.update({
@@ -54,14 +69,27 @@ export async function deleteProfessional(id: string) {
   });
 
   revalidatePath('/app/profissionais');
+  revalidatePath('/app/relatorios');
   return { success: true };
 }
 
-export async function updateProfessional(id: string, data: { name: string, specialty: string, photoUrl?: string, ratingAverage?: number, email?: string, password?: string }) {
+export async function updateProfessional(
+  id: string,
+  data: {
+    name: string;
+    specialty: string;
+    photoUrl?: string;
+    ratingAverage?: number;
+    email?: string;
+    password?: string;
+    commissionPercent?: number;
+  }
+) {
   const session = await requireCompanySession();
   const prof = await prisma.professional.findUnique({ where: { id } });
   if (!prof) throw new Error('Professional not found');
   if (prof.companyId !== session.companyId) throw new Error('Sem permissão');
+  if (session.role === 'PROFESSIONAL' && session.professionalId !== id) throw new Error('Sem permissão');
 
   let userId = prof.userId;
 
@@ -92,6 +120,11 @@ export async function updateProfessional(id: string, data: { name: string, speci
     }
   }
 
+  const adminCommissionUpdate =
+    session.role === 'COMPANY_ADMIN' && typeof data.commissionPercent === 'number'
+      ? { commissionPercent: Math.min(100, Math.max(0, data.commissionPercent)) }
+      : {};
+
   await prisma.professional.update({
     where: { id },
     data: {
@@ -100,10 +133,12 @@ export async function updateProfessional(id: string, data: { name: string, speci
       photoUrl: data.photoUrl,
       ratingAverage: data.ratingAverage,
       email: data.email || prof.email,
-      userId
+      userId,
+      ...adminCommissionUpdate,
     }
   });
 
   revalidatePath('/app/profissionais');
+  revalidatePath('/app/relatorios');
   return { success: true };
 }

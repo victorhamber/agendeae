@@ -1,5 +1,10 @@
 'use server';
 
+/**
+ * Agenda pública: URL `/{slug}` → `Company` → `BookingFlow` recebe `companyId` + profissionais da empresa.
+ * Horários livres: `getAvailableTimeSlots(profId, …)` resolve o `companyId` do profissional e filtra
+ * conflitos também por `companyId` (defesa em profundidade; `professionalId` já é único no sistema).
+ */
 import { prisma } from '@/lib/prisma';
 
 function timeToMinutes(timeStr: string): number {
@@ -54,8 +59,11 @@ export async function getAvailableTimeSlots(
   const endOfDay = new Date(date);
   endOfDay.setHours(23, 59, 59, 999);
 
+  const companyId = professional.companyId;
+
   const appointments = await prisma.appointment.findMany({
     where: {
+      companyId,
       professionalId,
       date: {
         gte: startOfDay,
@@ -70,6 +78,7 @@ export async function getAvailableTimeSlots(
   // 3. Fetch blocked times for this date (folgas, feriados, etc.)
   const blockedTimes = await prisma.blockedTime.findMany({
     where: {
+      companyId,
       professionalId,
       date: {
         gte: startOfDay,
@@ -80,7 +89,7 @@ export async function getAvailableTimeSlots(
 
   // 4. Calculate minimum time — prevent booking in the past or too close
   const company = await prisma.company.findUnique({
-    where: { id: professional.companyId },
+    where: { id: companyId },
     include: { bookingRules: true }
   });
   

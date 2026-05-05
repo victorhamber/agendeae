@@ -115,6 +115,8 @@ model Professional {
   whatsapp            String?
   email               String?
   description         String?
+  /// Percentual (0–100) do valor bruto do atendimento que é repasse ao profissional; o restante fica como receita líquida da empresa.
+  commissionPercent   Float     @default(0)
   ratingAverage       Float?    @default(5.0)
   ratingCount         Int       @default(0)
   status              String    @default("ACTIVE")

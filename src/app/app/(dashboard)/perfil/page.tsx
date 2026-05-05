@@ -58,11 +58,9 @@ export default async function PerfilPage() {
     include: { service: true },
   });
 
-  let monthGross = 0;
   let monthProfessionalShare = 0;
   for (const app of completedThisMonth) {
     const gross = app.totalPrice ?? app.service.price;
-    monthGross += gross;
     const split = splitAppointmentGross(gross, professional.commissionPercent);
     monthProfessionalShare += split.professionalShare;
   }
@@ -86,10 +84,6 @@ export default async function PerfilPage() {
           <div className={styles.agendaStatCard}>
             <p className={styles.agendaStatLabel}>Atendimentos concluídos</p>
             <p className={styles.agendaStatValue}>{completedThisMonth.length}</p>
-          </div>
-          <div className={styles.agendaStatCard}>
-            <p className={styles.agendaStatLabel}>Valor bruto dos serviços</p>
-            <p className={`${styles.agendaStatValue} ${styles.agendaStatValueSuccess}`}>{formatBrl(monthGross)}</p>
           </div>
           <div className={styles.agendaStatCard}>
             <p className={styles.agendaStatLabel}>Seu repasse (comissão)</p>

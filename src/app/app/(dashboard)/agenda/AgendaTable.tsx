@@ -4,6 +4,7 @@ import { useState } from 'react';
 import StatusSelect from './StatusSelect';
 import type { Appointment, Customer, Professional, Service } from '@prisma/client';
 import styles from '../../app.module.css';
+import { DateTime } from 'luxon';
 
 type AppointmentRow = Appointment & {
   customer: Customer;
@@ -14,10 +15,12 @@ type AppointmentRow = Appointment & {
 export default function AgendaTable({
   appointments,
   showFinancials = true,
+  companyTimezone = 'America/Sao_Paulo',
 }: {
   appointments: AppointmentRow[];
   /** Profissional logado não vê valores monetários (repasse/comissão). */
   showFinancials?: boolean;
+  companyTimezone?: string;
 }) {
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -38,9 +41,9 @@ export default function AgendaTable({
         .reduce((sum, a) => sum + (a.totalPrice || a.service.price), 0)
     : 0;
 
-  const today = new Date();
+  const nowTz = DateTime.now().setZone(companyTimezone);
   const colCount = showFinancials ? 6 : 5;
-  today.setHours(0, 0, 0, 0);
+  const todayTz = nowTz.startOf('day');
 
   const tableClass = `${styles.agendaTable} ${showFinancials ? styles.agendaTableWithFinance : styles.agendaTableNoFinance}`;
 
@@ -107,7 +110,8 @@ export default function AgendaTable({
                 </tr>
               ) : (
                 filteredAppointments.map(app => {
-                  const isToday = new Date(app.date).getTime() === today.getTime();
+                  const appDayTz = DateTime.fromJSDate(app.date, { zone: 'utc' }).setZone(companyTimezone).startOf('day');
+                  const isToday = appDayTz.toMillis() === todayTz.toMillis();
                   return (
                     <tr
                       key={app.id}

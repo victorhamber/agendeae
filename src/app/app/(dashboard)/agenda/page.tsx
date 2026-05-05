@@ -5,52 +5,47 @@ import { Suspense } from 'react';
 import { prisma } from '@/lib/prisma';
 import { requireCompanySession } from '@/lib/auth/server';
 import type { Prisma } from '@prisma/client';
+import { DateTime } from 'luxon';
+import { safeTz } from '@/lib/datetime';
 
-function getDateRange(filtro: string, de?: string, ate?: string) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+function getDateRange(tz: string, filtro: string, de?: string, ate?: string) {
+  const nowTz = DateTime.now().setZone(tz);
+  const today = nowTz.startOf('day');
 
   switch (filtro) {
     case 'hoje': {
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      return { gte: today, lt: tomorrow, label: 'Hoje' };
+      const tomorrow = today.plus({ days: 1 });
+      return { gte: today.toUTC().toJSDate(), lt: tomorrow.toUTC().toJSDate(), label: 'Hoje' };
     }
     case 'amanha': {
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const dayAfter = new Date(today);
-      dayAfter.setDate(dayAfter.getDate() + 2);
-      return { gte: tomorrow, lt: dayAfter, label: 'Amanhã' };
+      const tomorrow = today.plus({ days: 1 });
+      const dayAfter = today.plus({ days: 2 });
+      return { gte: tomorrow.toUTC().toJSDate(), lt: dayAfter.toUTC().toJSDate(), label: 'Amanhã' };
     }
     case 'semana': {
-      const dayOfWeek = today.getDay(); // 0 = Sunday
-      const startOfWeek = new Date(today);
-      startOfWeek.setDate(today.getDate() - dayOfWeek); // Sunday
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 7); // Next Sunday
-      return { gte: startOfWeek, lt: endOfWeek, label: 'Esta Semana' };
+      // Mantém semana iniciando no Domingo (0)
+      const dayOfWeek = today.weekday % 7; // Luxon: 1=Mon..7=Sun
+      const startOfWeek = today.minus({ days: dayOfWeek });
+      const endOfWeek = startOfWeek.plus({ days: 7 });
+      return { gte: startOfWeek.toUTC().toJSDate(), lt: endOfWeek.toUTC().toJSDate(), label: 'Esta Semana' };
     }
     case 'mes': {
-      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-      const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-      return { gte: startOfMonth, lt: endOfMonth, label: 'Este Mês' };
+      const startOfMonth = today.startOf('month');
+      const endOfMonth = startOfMonth.plus({ months: 1 });
+      return { gte: startOfMonth.toUTC().toJSDate(), lt: endOfMonth.toUTC().toJSDate(), label: 'Este Mês' };
     }
     case 'custom': {
       if (de && ate) {
-        const from = new Date(`${de}T00:00:00`);
-        const to = new Date(`${ate}T23:59:59`);
-        return { gte: from, lt: to, label: `${de} a ${ate}` };
+        const from = DateTime.fromISO(de, { zone: tz }).startOf('day');
+        const to = DateTime.fromISO(ate, { zone: tz }).endOf('day');
+        return { gte: from.toUTC().toJSDate(), lt: to.toUTC().toJSDate(), label: `${de} a ${ate}` };
       }
-      // Fallback to today
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      return { gte: today, lt: tomorrow, label: 'Hoje' };
+      const tomorrow = today.plus({ days: 1 });
+      return { gte: today.toUTC().toJSDate(), lt: tomorrow.toUTC().toJSDate(), label: 'Hoje' };
     }
     default: {
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      return { gte: today, lt: tomorrow, label: 'Hoje' };
+      const tomorrow = today.plus({ days: 1 });
+      return { gte: today.toUTC().toJSDate(), lt: tomorrow.toUTC().toJSDate(), label: 'Hoje' };
     }
   }
 }
@@ -65,7 +60,8 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
   }
 
   const filtro = params.filtro || 'hoje';
-  const range = getDateRange(filtro, params.de, params.ate);
+  const tz = safeTz(company.timezone);
+  const range = getDateRange(tz, filtro, params.de, params.ate);
 
   const whereClause: Prisma.AppointmentWhereInput = {
     companyId: company.id,
@@ -100,7 +96,11 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
         <AgendaFilter />
       </Suspense>
 
-      <AgendaTable appointments={appointments} showFinancials={session.role === 'COMPANY_ADMIN'} />
+      <AgendaTable
+        appointments={appointments}
+        showFinancials={session.role === 'COMPANY_ADMIN'}
+        companyTimezone={tz}
+      />
     </div>
   );
 }

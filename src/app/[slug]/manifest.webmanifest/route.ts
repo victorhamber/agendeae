@@ -21,7 +21,10 @@ export async function GET(_: Request, { params }: { params: Promise<{ slug: stri
     display: 'standalone',
     background_color: '#f8fafc',
     theme_color: themeColor,
-    icons: [{ src: iconUrl, sizes: 'any', purpose: 'any maskable' }],
+    icons: [
+      { src: iconUrl, sizes: '192x192', purpose: 'any maskable' },
+      { src: iconUrl, sizes: '512x512', purpose: 'any maskable' },
+    ],
   };
 
   return new NextResponse(JSON.stringify(manifest), {

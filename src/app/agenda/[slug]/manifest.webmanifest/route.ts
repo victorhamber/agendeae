@@ -21,9 +21,9 @@ export async function GET(_: Request, { params }: { params: Promise<{ slug: stri
     background_color: '#f8fafc',
     theme_color: themeColor,
     icons: [
-      // Usa a logo da empresa sempre que existir (mesmo que não seja PNG 512x512).
-      // Evitar "type" e tamanhos fixos reduz falhas de elegibilidade em navegadores quando a logo não bate exatamente.
-      { src: iconUrl, sizes: 'any', purpose: 'any maskable' },
+      // Chrome costuma exigir ícones 192 e 512 para habilitar "Instalar app".
+      { src: iconUrl, sizes: '192x192', purpose: 'any maskable' },
+      { src: iconUrl, sizes: '512x512', purpose: 'any maskable' },
     ],
   };
 

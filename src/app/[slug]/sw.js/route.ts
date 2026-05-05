@@ -3,6 +3,11 @@ import { NextResponse } from 'next/server';
 // Service worker acessível em /{slug}/sw.js (sem depender de rewrite/middleware).
 export async function GET() {
   const js = `
+self.addEventListener('fetch', (event) => {
+  // Pass-through fetch. Só existir e controlar a página já ajuda na elegibilidade do "Instalar app".
+  event.respondWith(fetch(event.request));
+});
+
 self.addEventListener('push', (event) => {
   let data = {};
   try { data = event.data ? event.data.json() : {}; } catch { data = {}; }

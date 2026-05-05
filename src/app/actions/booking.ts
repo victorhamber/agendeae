@@ -50,7 +50,8 @@ export async function createAppointment(data: {
   const bookingRules = await prisma.bookingRule.findUnique({
     where: { companyId: data.companyId }
   });
-  const minAdvanceHours = bookingRules?.minAdvanceHours ?? 1;
+  // OBS: apesar do nome no banco, `minAdvanceHours` agora é tratado como MINUTOS (compatibilidade).
+  const minAdvanceMinutes = bookingRules?.minAdvanceHours ?? 60;
   const maxAdvanceDays = bookingRules?.maxAdvanceDays ?? 60;
 
   const now = new Date();
@@ -68,9 +69,9 @@ export async function createAppointment(data: {
     .toUTC()
     .toJSDate();
   
-  const minAdvanceMs = minAdvanceHours * 60 * 60 * 1000;
+  const minAdvanceMs = minAdvanceMinutes * 60 * 1000;
   if (appointmentTime.getTime() - now.getTime() < minAdvanceMs) {
-    throw new Error(`É necessário agendar com pelo menos ${minAdvanceHours}h de antecedência`);
+    throw new Error(`É necessário agendar com pelo menos ${minAdvanceMinutes}min de antecedência`);
   }
   
   // Buscar todos os serviços selecionados

@@ -90,7 +90,8 @@ export async function getAvailableTimeSlots(
   });
   
   const rules = company?.bookingRules;
-  const minAdvanceHours = rules?.minAdvanceHours ?? 1;
+  // OBS: apesar do nome no banco, `minAdvanceHours` agora é tratado como MINUTOS (compatibilidade).
+  const minAdvanceMinutes = rules?.minAdvanceHours ?? 60;
   const maxAdvanceDays = rules?.maxAdvanceDays ?? 60;
 
   const nowTz = DateTime.now().setZone(tz);
@@ -100,7 +101,7 @@ export async function getAvailableTimeSlots(
   const maxDateTz = nowTz.plus({ days: maxAdvanceDays }).endOf('day');
   if (dateTz > maxDateTz) return []; // Beyond max advance limit
 
-  const MIN_ADVANCE_MINUTES = minAdvanceHours * 60;
+  const MIN_ADVANCE_MINUTES = minAdvanceMinutes;
   const isToday = dateTz.hasSame(nowTz, 'day');
   const currentMinOfDay = isToday ? (nowTz.hour * 60 + nowTz.minute + MIN_ADVANCE_MINUTES) : 0;
 

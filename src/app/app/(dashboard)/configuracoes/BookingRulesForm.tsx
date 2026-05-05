@@ -14,7 +14,7 @@ type Rules = {
 };
 
 const defaults: Rules = {
-  minAdvanceHours: 1,
+  minAdvanceHours: 60,
   maxAdvanceDays: 60,
   allowCancellation: true,
   cancellationDeadlineHours: 6,
@@ -63,7 +63,7 @@ export default function BookingRulesForm({ rules }: { rules: Rules | null }) {
         <div className="grid-2-col">
           <div>
             <label style={{ display: 'block', fontWeight: 500, marginBottom: '0.5rem' }}>
-              Antecedência Mínima (horas)
+              Antecedência Mínima (minutos)
             </label>
             <input
               name="minAdvanceHours"
@@ -71,9 +71,10 @@ export default function BookingRulesForm({ rules }: { rules: Rules | null }) {
               min="0"
               className="input"
               defaultValue={data.minAdvanceHours}
+              aria-label="Antecedência mínima em minutos"
             />
             <p style={{ color: 'var(--muted)', fontSize: '0.75rem', marginTop: '0.25rem' }}>
-              Ex: 1 = cliente não pode agendar com menos de 1h de antecedência
+              Ex: 60 = cliente não pode agendar com menos de 1h de antecedência
             </p>
           </div>
           <div>
@@ -86,6 +87,7 @@ export default function BookingRulesForm({ rules }: { rules: Rules | null }) {
               min="1"
               className="input"
               defaultValue={data.maxAdvanceDays}
+              aria-label="Antecedência máxima em dias"
             />
             <p style={{ color: 'var(--muted)', fontSize: '0.75rem', marginTop: '0.25rem' }}>
               Ex: 60 = cliente pode agendar até 60 dias no futuro
@@ -110,6 +112,7 @@ export default function BookingRulesForm({ rules }: { rules: Rules | null }) {
               className="input"
               defaultValue={data.cancellationDeadlineHours}
               style={{ maxWidth: '200px' }}
+              aria-label="Prazo mínimo para cancelar em horas"
             />
             <p style={{ color: 'var(--muted)', fontSize: '0.75rem', marginTop: '0.25rem' }}>
               Ex: 6 = cliente pode cancelar até 6h antes do horário
@@ -134,6 +137,7 @@ export default function BookingRulesForm({ rules }: { rules: Rules | null }) {
               className="input"
               defaultValue={data.rescheduleDeadlineHours}
               style={{ maxWidth: '200px' }}
+              aria-label="Prazo mínimo para reagendar em horas"
             />
           </div>
         </div>

@@ -13,7 +13,8 @@ export async function saveBookingRules(formData: FormData) {
   if (session.role !== 'COMPANY_ADMIN') throw new Error('Sem permissão');
 
   const data = {
-    minAdvanceHours: parseInt(String(formData.get('minAdvanceHours') || '1')),
+    // OBS: apesar do nome no banco, `minAdvanceHours` agora é tratado como MINUTOS (compatibilidade).
+    minAdvanceHours: parseInt(String(formData.get('minAdvanceHours') || '60')),
     maxAdvanceDays: parseInt(String(formData.get('maxAdvanceDays') || '60')),
     allowCancellation: formData.get('allowCancellation') === 'on',
     cancellationDeadlineHours: parseInt(String(formData.get('cancellationDeadlineHours') || '6')),

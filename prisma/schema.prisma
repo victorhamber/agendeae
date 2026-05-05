@@ -45,6 +45,8 @@ model Company {
   professionals   Professional[]
   customers       Customer[]
   appointments    Appointment[]
+  pushSubscriptions PushSubscription[]
+  appointmentReminders AppointmentReminder[]
   bookingRules    BookingRule?
 
   owner           User      @relation(fields: [ownerId], references: [id])
@@ -216,6 +218,8 @@ model Appointment {
   customer            Customer     @relation(fields: [customerId], references: [id])
   professional        Professional @relation(fields: [professionalId], references: [id])
   service             Service      @relation(fields: [serviceId], references: [id])
+
+  reminders           AppointmentReminder[]
 }
 
 model BookingRule {
@@ -232,5 +236,35 @@ model BookingRule {
   updatedAt                 DateTime  @updatedAt
 
   company                   Company   @relation(fields: [companyId], references: [id])
+}
+
+model PushSubscription {
+  id         String   @id @default(cuid())
+  companyId  String
+  phone      String   // WhatsApp/telefone do cliente (normalizado como string)
+  endpoint   String   @unique
+  p256dh     String
+  auth       String
+  userAgent  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  company    Company   @relation(fields: [companyId], references: [id])
+
+  @@index([companyId, phone])
+}
+
+model AppointmentReminder {
+  id            String   @id @default(cuid())
+  companyId     String
+  appointmentId String
+  type          String   // REMINDER_20M
+  sentAt        DateTime @default(now())
+
+  company       Company      @relation(fields: [companyId], references: [id])
+  appointment   Appointment  @relation(fields: [appointmentId], references: [id])
+
+  @@unique([appointmentId, type])
+  @@index([companyId, sentAt])
 }
 

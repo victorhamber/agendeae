@@ -15,6 +15,8 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "AGENDAAE | Agendamento Online Automático",
   description: "A agenda automática para negócios que querem parar de depender do WhatsApp para marcar horários.",
+  manifest: "/manifest.webmanifest",
+  themeColor: "#4f46e5",
 };
 
 export default function RootLayout({
@@ -23,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className={`${geistSans.variable} ${geistMono.variable}`} style={{ colorScheme: 'light' }}>
+    <html lang="pt-BR" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>{children}</body>
     </html>
   );

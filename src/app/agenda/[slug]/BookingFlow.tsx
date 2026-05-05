@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import styles from './agenda.module.css';
 import { getAvailableTimeSlots } from '../../actions/availability';
 import { createAppointment } from '../../actions/booking';
+import PushEnable from './PushEnable';
 
 type Service = {
   id: string;
@@ -265,6 +266,8 @@ export default function BookingFlow({
             Enviar confirmação no WhatsApp
           </a>
         )}
+
+        <PushEnable companyId={companyId} phone={customerWhatsapp} />
 
         <button type="button" className={styles.btnNewBooking} onClick={() => window.location.reload()}>
           Fazer Novo Agendamento

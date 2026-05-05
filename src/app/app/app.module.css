@@ -1029,3 +1029,270 @@
   text-align: center;
   padding: 1rem;
 }
+
+/* ──────────────────────────────────────── */
+/* Perfil profissional — resumo financeiro  */
+/* ──────────────────────────────────────── */
+
+.perfilEarningsSection {
+  padding: 2rem;
+  border-radius: var(--radius);
+  margin-bottom: 2rem;
+}
+
+.perfilEarningsTitle {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.perfilEarningsLead {
+  color: var(--muted);
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.perfilEarningsFootnote {
+  color: var(--muted);
+  font-size: 0.8125rem;
+  margin-top: 1rem;
+  line-height: 1.5;
+}
+
+.perfilAccessDenied {
+  padding: 2rem;
+  text-align: center;
+  color: var(--muted);
+}
+
+.perfilGlassSection {
+  padding: 2rem;
+  border-radius: var(--radius);
+  margin-bottom: 2rem;
+}
+
+.perfilSectionTitle {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+}
+
+.perfilSectionTitleTight {
+  margin-bottom: 0.5rem;
+}
+
+.perfilSectionDesc {
+  color: var(--muted);
+  margin-bottom: 2rem;
+}
+
+/* PerfilForm */
+.perfilForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.perfilFormRow {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.perfilFormAvatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background-color: #27272a;
+  border: 2px solid var(--primary);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.perfilFormAvatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.perfilFormFields {
+  flex: 1;
+  min-width: 0;
+}
+
+.perfilFormLabel {
+  display: block;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.perfilFormInputFull {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.perfilFormMessage {
+  margin-left: 1rem;
+}
+
+.perfilFormMessageOk {
+  color: var(--success);
+}
+
+.perfilFormMessageErr {
+  color: var(--danger);
+}
+
+/* AvailabilityForm */
+.availTableWrap {
+  margin-bottom: 2rem;
+}
+
+.availTableInner {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 700px;
+}
+
+.availGridHeader {
+  display: grid;
+  grid-template-columns: 150px 1fr 1fr 1fr 1fr;
+  gap: 1rem;
+  font-weight: bold;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 0.5rem;
+}
+
+.availGridRow {
+  display: grid;
+  grid-template-columns: 150px 1fr 1fr 1fr 1fr;
+  gap: 1rem;
+  align-items: center;
+}
+
+.availGridRowInactive {
+  opacity: 0.5;
+}
+
+.availDayCell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.availSubmitRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* BlockedTimesForm */
+.blockedTimesSection {
+  padding: 1.5rem;
+  border-radius: var(--radius);
+  margin-top: 2rem;
+}
+
+.blockedTimesTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.blockedTimesLead {
+  color: var(--muted);
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+}
+
+.blockedTimesAddPanel {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.blockedTimesFieldLabel {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-bottom: 0.25rem;
+}
+
+.blockedTimesInput {
+  padding: 0.5rem;
+}
+
+.blockedTimesReasonGrow {
+  flex: 1;
+  min-width: 150px;
+}
+
+.blockedTimesAddButton {
+  padding: 0.5rem 1.25rem;
+  white-space: nowrap;
+}
+
+.blockedTimesEmpty {
+  color: var(--muted);
+  font-size: 0.875rem;
+  text-align: center;
+  padding: 1rem;
+}
+
+.blockedTimesTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.blockedTimesTheadRow {
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.blockedTimesTh {
+  padding: 0.5rem 0;
+  text-align: left;
+  font-weight: 500;
+}
+
+.blockedTimesThRight {
+  padding: 0.5rem 0;
+  text-align: right;
+  font-weight: 500;
+}
+
+.blockedTimesTbodyRow {
+  border-bottom: 1px solid var(--border);
+}
+
+.blockedTimesTd {
+  padding: 0.75rem 0;
+}
+
+.blockedTimesTdMuted {
+  color: var(--muted);
+}
+
+.blockedTimesTdRight {
+  padding: 0.75rem 0;
+  text-align: right;
+}
+
+.blockedTimesDeleteBtn {
+  color: var(--danger);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+}

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { createBlockedTime, deleteBlockedTime } from '@/app/actions/blockedTimes';
+import styles from '../../../app.module.css';
 
 type BlockedTime = {
   id: string;
@@ -60,62 +61,92 @@ export default function BlockedTimesForm({
   };
 
   return (
-    <div className="glass" style={{ padding: '1.5rem', borderRadius: 'var(--radius)', marginTop: '2rem' }}>
-      <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>Bloqueios de Horário</h2>
-      <p style={{ color: 'var(--muted)', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
+    <div className={`glass ${styles.blockedTimesSection}`}>
+      <h2 className={styles.blockedTimesTitle}>Bloqueios de Horário</h2>
+      <p className={styles.blockedTimesLead}>
         Bloqueie datas ou horários específicos (folga, feriado, compromisso pessoal, etc.).
       </p>
 
-      {/* Formulário para adicionar */}
-      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: '1.5rem', padding: '1rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)', backgroundColor: 'rgba(0,0,0,0.02)' }}>
+      <div className={styles.blockedTimesAddPanel}>
         <div>
-          <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>Data</label>
-          <input type="date" className="input" value={dateStr} onChange={e => setDateStr(e.target.value)} aria-label="Data do bloqueio" style={{ padding: '0.5rem' }} />
+          <label className={styles.blockedTimesFieldLabel} htmlFor="blocked-date">Data</label>
+          <input
+            id="blocked-date"
+            type="date"
+            className={`input ${styles.blockedTimesInput}`}
+            value={dateStr}
+            onChange={e => setDateStr(e.target.value)}
+            aria-label="Data do bloqueio"
+          />
         </div>
         <div>
-          <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>Início</label>
-          <input type="time" className="input" value={startTime} onChange={e => setStartTime(e.target.value)} aria-label="Horário de início do bloqueio" style={{ padding: '0.5rem' }} />
+          <label className={styles.blockedTimesFieldLabel} htmlFor="blocked-start">Início</label>
+          <input
+            id="blocked-start"
+            type="time"
+            className={`input ${styles.blockedTimesInput}`}
+            value={startTime}
+            onChange={e => setStartTime(e.target.value)}
+            aria-label="Horário de início do bloqueio"
+          />
         </div>
         <div>
-          <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>Fim</label>
-          <input type="time" className="input" value={endTime} onChange={e => setEndTime(e.target.value)} aria-label="Horário de fim do bloqueio" style={{ padding: '0.5rem' }} />
+          <label className={styles.blockedTimesFieldLabel} htmlFor="blocked-end">Fim</label>
+          <input
+            id="blocked-end"
+            type="time"
+            className={`input ${styles.blockedTimesInput}`}
+            value={endTime}
+            onChange={e => setEndTime(e.target.value)}
+            aria-label="Horário de fim do bloqueio"
+          />
         </div>
-        <div style={{ flex: 1, minWidth: '150px' }}>
-          <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--muted)', marginBottom: '0.25rem' }}>Motivo (opcional)</label>
-          <input type="text" className="input" value={reason} onChange={e => setReason(e.target.value)} placeholder="Ex: Feriado, Folga..." style={{ padding: '0.5rem' }} />
+        <div className={styles.blockedTimesReasonGrow}>
+          <label className={styles.blockedTimesFieldLabel} htmlFor="blocked-reason">Motivo (opcional)</label>
+          <input
+            id="blocked-reason"
+            type="text"
+            className={`input ${styles.blockedTimesInput}`}
+            value={reason}
+            onChange={e => setReason(e.target.value)}
+            placeholder="Ex: Feriado, Folga..."
+          />
         </div>
-        <button className="btn-primary" onClick={handleAdd} disabled={isSubmitting} style={{ padding: '0.5rem 1.25rem', whiteSpace: 'nowrap' }}>
+        <button
+          type="button"
+          className={`btn-primary ${styles.blockedTimesAddButton}`}
+          onClick={handleAdd}
+          disabled={isSubmitting}
+        >
           {isSubmitting ? 'Salvando...' : '+ Bloquear'}
         </button>
       </div>
 
-      {/* Lista de bloqueios */}
       {blockedTimes.length === 0 ? (
-        <p style={{ color: 'var(--muted)', fontSize: '0.875rem', textAlign: 'center', padding: '1rem' }}>
-          Nenhum bloqueio configurado.
-        </p>
+        <p className={styles.blockedTimesEmpty}>Nenhum bloqueio configurado.</p>
       ) : (
         <div className="table-responsive">
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+          <table className={styles.blockedTimesTable}>
             <thead>
-              <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--muted)' }}>
-                <th style={{ padding: '0.5rem 0', textAlign: 'left', fontWeight: 500 }}>Data</th>
-                <th style={{ padding: '0.5rem 0', textAlign: 'left', fontWeight: 500 }}>Horário</th>
-                <th style={{ padding: '0.5rem 0', textAlign: 'left', fontWeight: 500 }}>Motivo</th>
-                <th style={{ padding: '0.5rem 0', textAlign: 'right', fontWeight: 500 }}>Ação</th>
+              <tr className={styles.blockedTimesTheadRow}>
+                <th className={styles.blockedTimesTh}>Data</th>
+                <th className={styles.blockedTimesTh}>Horário</th>
+                <th className={styles.blockedTimesTh}>Motivo</th>
+                <th className={styles.blockedTimesThRight}>Ação</th>
               </tr>
             </thead>
             <tbody>
               {blockedTimes.map(bt => (
-                <tr key={bt.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '0.75rem 0' }}>{new Date(bt.date).toLocaleDateString('pt-BR')}</td>
-                  <td style={{ padding: '0.75rem 0' }}>{bt.startTime} - {bt.endTime}</td>
-                  <td style={{ padding: '0.75rem 0', color: 'var(--muted)' }}>{bt.reason || '—'}</td>
-                  <td style={{ padding: '0.75rem 0', textAlign: 'right' }}>
+                <tr key={bt.id} className={styles.blockedTimesTbodyRow}>
+                  <td className={styles.blockedTimesTd}>{new Date(bt.date).toLocaleDateString('pt-BR')}</td>
+                  <td className={styles.blockedTimesTd}>{bt.startTime} - {bt.endTime}</td>
+                  <td className={`${styles.blockedTimesTd} ${styles.blockedTimesTdMuted}`}>{bt.reason || '—'}</td>
+                  <td className={styles.blockedTimesTdRight}>
                     <button 
+                      type="button"
                       onClick={() => handleDelete(bt.id)} 
                       disabled={deletingId === bt.id}
-                      style={{ color: 'var(--danger)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}
+                      className={styles.blockedTimesDeleteBtn}
                     >
                       {deletingId === bt.id ? 'Removendo...' : 'Remover'}
                     </button>

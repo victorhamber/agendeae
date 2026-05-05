@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { saveAvailability, AvailabilityData } from '@/app/actions/config';
+import styles from '../../app.module.css';
 
 const DAYS_OF_WEEK = [
   'Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'
@@ -24,14 +25,13 @@ export default function AvailabilityForm({
 }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  // Initialize state with existing data or defaults
   const [formData, setFormData] = useState<AvailabilityData[]>(
     DAYS_OF_WEEK.map((dayName, index) => {
       const existing = initialData.find(d => d.dayOfWeek === index);
       return {
         id: existing?.id,
         dayOfWeek: index,
-        isActive: existing ? existing.status === 'ACTIVE' : (index >= 1 && index <= 5), // Default Mon-Fri
+        isActive: existing ? existing.status === 'ACTIVE' : (index >= 1 && index <= 5),
         startTime: existing?.startTime || '09:00',
         endTime: existing?.endTime || '18:00',
         breakStartTime: existing?.breakStartTime || '12:00',
@@ -62,9 +62,9 @@ export default function AvailabilityForm({
 
   return (
     <form onSubmit={handleSubmit}>
-      <div className="table-responsive" style={{ marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', minWidth: '700px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr 1fr 1fr 1fr', gap: '1rem', fontWeight: 'bold', borderBottom: '2px solid var(--border)', paddingBottom: '0.5rem' }}>
+      <div className={`table-responsive ${styles.availTableWrap}`}>
+        <div className={styles.availTableInner}>
+          <div className={styles.availGridHeader}>
             <div>Dia</div>
             <div>Abertura</div>
             <div>Fechamento</div>
@@ -73,8 +73,11 @@ export default function AvailabilityForm({
           </div>
 
           {formData.map((day, index) => (
-            <div key={index} style={{ display: 'grid', gridTemplateColumns: '150px 1fr 1fr 1fr 1fr', gap: '1rem', alignItems: 'center', opacity: day.isActive ? 1 : 0.5 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div
+              key={index}
+              className={`${styles.availGridRow} ${!day.isActive ? styles.availGridRowInactive : ''}`}
+            >
+              <div className={styles.availDayCell}>
                 <input 
                   type="checkbox" 
                   checked={day.isActive} 
@@ -124,7 +127,7 @@ export default function AvailabilityForm({
         </div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+      <div className={styles.availSubmitRow}>
         <button type="submit" className="btn-primary" disabled={isSubmitting}>
           {isSubmitting ? 'Salvando...' : 'Salvar Configurações'}
         </button>

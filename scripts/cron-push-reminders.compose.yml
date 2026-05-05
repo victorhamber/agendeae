@@ -1,0 +1,24 @@
+# Exemplo para Coolify / Easypanel: serviço Compose separado que chama o cron a cada minuto.
+#
+# IMPORTANTE:
+# - CRON_BASE_URL deve ser o MESMO domínio onde o Next responde (ex.: https://agendeae.com.br).
+#   NÃO use app.seudominio.com a menos que esse host também aponte para esta API.
+# - CRON_SECRET deve ser idêntico ao CRON_SECRET do serviço principal (agendeae-app).
+# - Implante este serviço e deixe-o rodando (ponto verde). Aba "Ambiente" vazia é ok se as
+#   variáveis estão em `environment:` abaixo ou no editor YAML.
+
+services:
+  cron_push_reminders:
+    image: alpine:3.20
+    restart: unless-stopped
+    environment:
+      CRON_BASE_URL: 'https://agendeae.com.br'
+      CRON_SECRET: 'troque-pelo-mesmo-valor-do-agendeae-app'
+    entrypoint: ['/bin/sh', '-c']
+    command:
+      - |
+        set -e
+        apk add --no-cache curl >/dev/null
+        URL="$CRON_BASE_URL/api/cron/push-reminders?token=$CRON_SECRET"
+        echo "* * * * * curl -fsS \"$URL\" >/proc/1/fd/1 2>/proc/1/fd/2" > /etc/crontabs/root
+        exec crond -f -d 8

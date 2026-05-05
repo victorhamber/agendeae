@@ -1,6 +1,7 @@
 import styles from './agenda.module.css';
 import type { Metadata } from 'next';
 import { prisma } from '@/lib/prisma';
+import { resolveAgendaIconUrl, siteOriginFromHeaders } from '@/lib/pwaAgenda';
 
 export async function generateMetadata({
   params,
@@ -19,7 +20,8 @@ export async function generateMetadata({
     company?.description?.trim() ||
     'Agende seu horário em poucos cliques. Escolha o serviço, o profissional e o melhor horário.';
 
-  const iconUrl = company?.logoUrl || '/next.svg';
+  const origin = await siteOriginFromHeaders();
+  const iconUrl = resolveAgendaIconUrl(origin, company?.logoUrl);
 
   // Manifest + ícones por empresa (melhora elegibilidade do "Instalar app")
   return {

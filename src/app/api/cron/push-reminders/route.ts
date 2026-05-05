@@ -12,9 +12,10 @@ function appointmentDateTime(dateOnly: Date, startTime: string) {
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const token = url.searchParams.get('token') ?? '';
-  if (!process.env.CRON_SECRET || token !== process.env.CRON_SECRET) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-  }
+  const isVercelCron = (req.headers.get('x-vercel-cron') ?? '') === '1';
+  const hasSecret = !!process.env.CRON_SECRET;
+  const okBySecret = hasSecret && token === process.env.CRON_SECRET;
+  if (!isVercelCron && !okBySecret) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
 
   const now = new Date();
   const targetStart = new Date(now.getTime() + 20 * 60 * 1000 - 60 * 1000);

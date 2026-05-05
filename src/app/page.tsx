@@ -22,5 +22,12 @@ export default async function Home() {
     redirect('/super-admin/login');
   }
 
-  redirect('/app/login');
+  // Domínio principal: páginas públicas ficam em /<slug> (rewritten para /agenda/<slug> via proxy).
+  // Mantemos a raiz como "home" pública básica (por enquanto).
+  return (
+    <main className="pagePad">
+      <h1>AGENDAAE</h1>
+      <p>Acesse pelo link da sua empresa: https://agendeae.com.br/seuslug</p>
+    </main>
+  );
 }

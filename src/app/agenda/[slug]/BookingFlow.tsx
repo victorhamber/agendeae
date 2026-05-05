@@ -38,6 +38,7 @@ export default function BookingFlow({
   companyId,
   companyWhatsapp,
   companyTimezone,
+  slug,
   allowAnyProfessional = true,
   allowCancellation = true,
   maxAdvanceDays = 60,
@@ -47,6 +48,7 @@ export default function BookingFlow({
   companyId: string;
   companyWhatsapp: string;
   companyTimezone: string;
+  slug: string;
   allowAnyProfessional?: boolean;
   allowCancellation?: boolean;
   maxAdvanceDays?: number;
@@ -266,7 +268,7 @@ export default function BookingFlow({
           </a>
         )}
 
-        <PushEnable companyId={companyId} phone={customerWhatsapp} />
+        <PushEnable companyId={companyId} phone={customerWhatsapp} slug={slug} />
 
         <button type="button" className={styles.btnNewBooking} onClick={() => window.location.reload()}>
           Fazer Novo Agendamento

@@ -15,9 +15,11 @@ function urlBase64ToUint8Array(base64String: string) {
 export default function PushEnable({
   companyId,
   phone,
+  slug,
 }: {
   companyId: string;
   phone: string;
+  slug: string;
 }) {
   const [status, setStatus] = useState<'idle' | 'working' | 'ok' | 'error' | 'denied'>('idle');
   const canUse = useMemo(() => typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window, []);
@@ -32,7 +34,7 @@ export default function PushEnable({
         return;
       }
 
-      const reg = await navigator.serviceWorker.register('/sw.js');
+      const reg = await navigator.serviceWorker.register(`/${slug}/sw.js`);
       const keyRes = await fetch('/api/push/public-key');
       const keyJson = (await keyRes.json()) as { publicKey?: string };
       if (!keyJson.publicKey) throw new Error('Chave pública ausente');

@@ -60,8 +60,11 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  // Raiz do domínio principal → login do app
-  if (pathname === '/') {
+  // Raiz do domínio principal → site público (não redireciona)
+  if (pathname === '/') return NextResponse.next();
+
+  // /login no domínio principal → login do app
+  if (pathname === '/login') {
     const redirectUrl = new URL('/login', `https://app.${baseDomain}`);
     return NextResponse.redirect(redirectUrl);
   }

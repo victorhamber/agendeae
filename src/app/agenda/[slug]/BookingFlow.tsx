@@ -261,7 +261,8 @@ export default function BookingFlow({
             rel="noopener noreferrer"
             className={styles.whatsappCta}
           >
-            💬 Falar no WhatsApp
+            <img src="/icons/whatsapp.png" alt="" className={styles.socialIcon} width={18} height={18} />
+            Enviar confirmação no WhatsApp
           </a>
         )}
 

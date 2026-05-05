@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import BookingFlow from './BookingFlow';
+import InstallAppButton from './InstallAppButton';
 import styles from './agenda.module.css';
 import { getAgendaThemeClass } from './agendaTheme';
 import { prisma } from '@/lib/prisma';
@@ -89,6 +90,8 @@ export default async function AgendaPage({ params }: { params: Promise<{ slug: s
                 </a>
               )}
             </div>
+
+            <InstallAppButton />
           </div>
 
           {/*

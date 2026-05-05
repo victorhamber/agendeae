@@ -27,13 +27,22 @@ type Professional = {
 const getNextDays = (numDays: number) => {
   const dates = [];
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
   for (let i = 0; i < numDays; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
+    d.setHours(0, 0, 0, 0);
     dates.push(d);
   }
   return dates;
 };
+
+function toYmdLocal(date: Date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
 
 const dayNames = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
 const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -129,7 +138,9 @@ export default function BookingFlow({
       isDragging.current = false;
       return;
     }
-    setSelectedDateObj(date);
+    const normalized = new Date(date);
+    normalized.setHours(0, 0, 0, 0);
+    setSelectedDateObj(normalized);
   };
 
   const totalDuration = selectedServices.reduce((acc, curr) => acc + curr.durationMinutes, 0);
@@ -158,7 +169,7 @@ export default function BookingFlow({
         setLoadingTimes(true);
         setAvailableTimes([]);
         try {
-          const dateStr = selectedDateObj.toISOString().split('T')[0];
+          const dateStr = toYmdLocal(selectedDateObj);
           const slots = await getAvailableTimeSlots(selectedProfessional.id, dateStr, totalDuration);
           setAvailableTimes(slots);
         } catch (error) {
@@ -191,7 +202,7 @@ export default function BookingFlow({
         companyId,
         professionalId: selectedProfessional.id,
         serviceIds: selectedServices.map(s => s.id),
-        dateStr: selectedDateObj.toISOString().split('T')[0],
+        dateStr: toYmdLocal(selectedDateObj),
         startTime: selectedTime,
         customerName,
         customerWhatsapp,
@@ -512,7 +523,7 @@ export default function BookingFlow({
               const isSelected = selectedDateObj?.getTime() === date.getTime();
               return (
                 <div
-                  key={date.toISOString()}
+                  key={toYmdLocal(date)}
                   className={`${styles.dateCard} ${isSelected ? styles.selected : ''} ${styles.dateCardNoSelect}`}
                   role="button"
                   tabIndex={0}

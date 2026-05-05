@@ -21,7 +21,6 @@
 }
 
 html {
-  -webkit-text-size-adjust: 100%;
   color-scheme: light;
 }
 
@@ -97,7 +96,6 @@ button {
 .table-responsive {
   width: 100%;
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
 /* Grid Responsiveness */
@@ -131,7 +129,6 @@ button {
   .table-responsive {
     margin: 0 -1rem;
     padding: 0 1rem;
-    scrollbar-width: thin;
   }
 
   .table-responsive table {

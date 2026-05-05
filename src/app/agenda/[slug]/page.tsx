@@ -101,6 +101,7 @@ export default async function AgendaPage({ params }: { params: Promise<{ slug: s
             professionals={company.professionals} 
             companyId={company.id}
             companyWhatsapp={company.whatsapp || ''}
+            companyTimezone={company.timezone}
             allowAnyProfessional={company.bookingRules?.allowAnyProfessional ?? true}
             allowCancellation={company.bookingRules?.allowCancellation ?? true}
             maxAdvanceDays={company.bookingRules?.maxAdvanceDays ?? 60}

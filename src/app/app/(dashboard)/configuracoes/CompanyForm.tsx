@@ -126,6 +126,7 @@ export default function CompanyForm({ company }: { company: Company }) {
   const [slugError, setSlugError] = useState('');
   const [slugOk, setSlugOk] = useState(false);
   const [primaryColor, setPrimaryColor] = useState(company.primaryColor || '#4f46e5');
+  const [timezone, setTimezone] = useState((company as Company & { timezone?: string }).timezone || 'America/Sao_Paulo');
   const [logoUrl, setLogoUrl] = useState(company.logoUrl || '');
   const [coverUrl, setCoverUrl] = useState(company.coverUrl || '');
   const [whatsapp, setWhatsapp] = useState(company.whatsapp || '');
@@ -178,7 +179,7 @@ export default function CompanyForm({ company }: { company: Company }) {
     setIsSubmitting(true);
     try {
       await updateCompanyInfo({ 
-        name, segment, description, slug, primaryColor, logoUrl, coverUrl, whatsapp, instagram, address 
+        name, segment, description, slug, primaryColor, timezone, logoUrl, coverUrl, whatsapp, instagram, address 
       });
       originalSlug.current = slug;
       alert('Personalização atualizada com sucesso!');
@@ -272,6 +273,17 @@ export default function CompanyForm({ company }: { company: Company }) {
             <input type="color" value={primaryColor} onChange={e => setPrimaryColor(e.target.value)} aria-label="Cor primária da marca" className={styles.colorPicker} />
             <span className={styles.companySlugPrefix}>Cor dos botões e do design do seu link.</span>
           </div>
+        </div>
+
+        <div>
+          <label className={styles.companyLabel}>Fuso Horário</label>
+          <span className={styles.companyHint}>Usado para calendário, horários disponíveis e lembretes automáticos.</span>
+          <select className="input" value={timezone} onChange={e => setTimezone(e.target.value)} aria-label="Fuso horário da empresa">
+            <option value="America/Sao_Paulo">Brasil (UTC-3) — São Paulo / Brasília</option>
+            <option value="America/Manaus">Brasil (UTC-4) — Manaus</option>
+            <option value="America/Rio_Branco">Brasil (UTC-5) — Rio Branco</option>
+            <option value="America/Noronha">Brasil (UTC-2) — Fernando de Noronha</option>
+          </select>
         </div>
 
         <div className={styles.saveRow}>

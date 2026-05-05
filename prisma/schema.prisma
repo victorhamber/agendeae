@@ -27,6 +27,7 @@ model Company {
   name            String
   slug            String    @unique
   segment         String?
+  timezone        String    @default("America/Sao_Paulo")
   logoUrl         String?
   coverUrl        String?
   primaryColor    String?

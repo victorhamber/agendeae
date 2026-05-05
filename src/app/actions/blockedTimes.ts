@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { requireCompanySession } from '@/lib/auth/server';
+import { safeTz, ymdToUtcDate } from '@/lib/datetime';
 
 export async function createBlockedTime(data: {
   professionalId: string;
@@ -15,10 +16,14 @@ export async function createBlockedTime(data: {
   if (session.role === 'PROFESSIONAL' && session.professionalId !== data.professionalId) {
     throw new Error('Sem permissão');
   }
-  const prof = await prisma.professional.findUnique({ where: { id: data.professionalId }, select: { companyId: true } });
+  const prof = await prisma.professional.findUnique({
+    where: { id: data.professionalId },
+    select: { companyId: true, company: { select: { timezone: true } } },
+  });
   if (!prof || prof.companyId !== session.companyId) throw new Error('Sem permissão');
 
-  const date = new Date(`${data.dateStr}T00:00:00`);
+  const tz = safeTz(prof.company.timezone);
+  const date = ymdToUtcDate(data.dateStr, tz);
 
   await prisma.blockedTime.create({
     data: {

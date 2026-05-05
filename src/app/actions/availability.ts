@@ -6,6 +6,8 @@
  * conflitos também por `companyId` (defesa em profundidade; `professionalId` já é único no sistema).
  */
 import { prisma } from '@/lib/prisma';
+import { safeTz, ymdToDayOfWeek, ymdToUtcRange } from '@/lib/datetime';
+import { DateTime } from 'luxon';
 
 function timeToMinutes(timeStr: string): number {
   const [hours, minutes] = timeStr.split(':').map(Number);
@@ -27,18 +29,19 @@ export async function getAvailableTimeSlots(
   dateStr: string, // YYYY-MM-DD
   totalDurationMinutes: number
 ) {
-  const date = new Date(`${dateStr}T00:00:00`);
-  const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, etc.
-
   // 1. Fetch Availability config for this day
   const professional = await prisma.professional.findUnique({
     where: { id: professionalId },
-    select: { id: true, companyId: true },
+    select: { id: true, companyId: true, company: { select: { timezone: true } } },
   });
 
   if (!professional) {
     return [];
   }
+
+  const tz = safeTz(professional.company.timezone);
+  const dayOfWeek = ymdToDayOfWeek(dateStr, tz); // 0=Sunday..6=Saturday
+  const { startUtc: startOfDay, endUtc: endOfDay } = ymdToUtcRange(dateStr, tz);
 
   const availability = await prisma.availability.findFirst({
     where: {
@@ -51,13 +54,6 @@ export async function getAvailableTimeSlots(
   if (!availability) {
     return []; // Not working on this day
   }
-
-  // 2. Fetch existing appointments for this date
-  const startOfDay = new Date(date);
-  startOfDay.setHours(0, 0, 0, 0);
-  
-  const endOfDay = new Date(date);
-  endOfDay.setHours(23, 59, 59, 999);
 
   const companyId = professional.companyId;
 
@@ -97,19 +93,16 @@ export async function getAvailableTimeSlots(
   const minAdvanceHours = rules?.minAdvanceHours ?? 1;
   const maxAdvanceDays = rules?.maxAdvanceDays ?? 60;
 
-  const now = new Date();
-  
-  // Verify max advance days
-  const maxDate = new Date(now);
-  maxDate.setDate(now.getDate() + maxAdvanceDays);
-  maxDate.setHours(23, 59, 59, 999);
-  if (date > maxDate) {
-    return []; // Beyond max advance limit
-  }
+  const nowTz = DateTime.now().setZone(tz);
+  const dateTz = DateTime.fromISO(dateStr, { zone: tz }).startOf('day');
+
+  // Verify max advance days (no timezone da empresa)
+  const maxDateTz = nowTz.plus({ days: maxAdvanceDays }).endOf('day');
+  if (dateTz > maxDateTz) return []; // Beyond max advance limit
 
   const MIN_ADVANCE_MINUTES = minAdvanceHours * 60;
-  const isToday = date.toDateString() === now.toDateString();
-  const currentMinOfDay = isToday ? (now.getHours() * 60 + now.getMinutes() + MIN_ADVANCE_MINUTES) : 0;
+  const isToday = dateTz.hasSame(nowTz, 'day');
+  const currentMinOfDay = isToday ? (nowTz.hour * 60 + nowTz.minute + MIN_ADVANCE_MINUTES) : 0;
 
   // 5. Generate possible slots
   const slots: string[] = [];

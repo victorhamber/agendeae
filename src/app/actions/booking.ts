@@ -5,6 +5,8 @@
  * `createAppointment` exige `professionalId` pertencente a `companyId` e cruza conflitos também por `companyId`.
  */
 import { prisma } from '@/lib/prisma';
+import { safeTz, ymdToUtcDate, ymdToUtcRange } from '@/lib/datetime';
+import { DateTime } from 'luxon';
 
 function timeToMinutes(timeStr: string): number {
   const [hours, minutes] = timeStr.split(':').map(Number);
@@ -26,18 +28,18 @@ export async function createAppointment(data: {
   customerName: string;
   customerWhatsapp: string;
 }) {
-  const date = new Date(`${data.dateStr}T00:00:00`);
-  if (Number.isNaN(date.getTime())) throw new Error('Data inválida');
+  const companyForTz = await prisma.company.findUnique({
+    where: { id: data.companyId },
+    select: { id: true, status: true, timezone: true },
+  });
+  if (!companyForTz || companyForTz.status !== 'ACTIVE') throw new Error('Empresa indisponível');
+
+  const tz = safeTz(companyForTz.timezone);
+  const date = ymdToUtcDate(data.dateStr, tz);
   if (!data.startTime) throw new Error('Horário inválido');
   if (!data.customerName?.trim()) throw new Error('Nome é obrigatório');
   if (!data.customerWhatsapp?.trim()) throw new Error('WhatsApp é obrigatório');
   if (!data.serviceIds?.length) throw new Error('Selecione ao menos 1 serviço');
-
-  const company = await prisma.company.findUnique({
-    where: { id: data.companyId },
-    select: { id: true, status: true },
-  });
-  if (!company || company.status !== 'ACTIVE') throw new Error('Empresa indisponível');
 
   const professional = await prisma.professional.findFirst({
     where: { id: data.professionalId, companyId: data.companyId, status: 'ACTIVE' },
@@ -54,17 +56,17 @@ export async function createAppointment(data: {
   const now = new Date();
   
   // Verify max advance days
-  const maxDate = new Date(now);
-  maxDate.setDate(now.getDate() + maxAdvanceDays);
-  maxDate.setHours(23, 59, 59, 999);
-  if (date > maxDate) {
+  const maxDateTz = DateTime.fromJSDate(now).setZone(tz).plus({ days: maxAdvanceDays }).endOf('day');
+  if (DateTime.fromJSDate(date, { zone: 'utc' }) > maxDateTz.toUTC()) {
     throw new Error(`Só é possível agendar com até ${maxAdvanceDays} dias de antecedência`);
   }
 
   // Verify min advance hours
-  const appointmentTime = new Date(date);
   const [hours, minutes] = data.startTime.split(':').map(Number);
-  appointmentTime.setHours(hours, minutes, 0, 0);
+  const appointmentTime = DateTime.fromISO(data.dateStr, { zone: tz })
+    .set({ hour: hours || 0, minute: minutes || 0, second: 0, millisecond: 0 })
+    .toUTC()
+    .toJSDate();
   
   const minAdvanceMs = minAdvanceHours * 60 * 60 * 1000;
   if (appointmentTime.getTime() - now.getTime() < minAdvanceMs) {
@@ -98,10 +100,7 @@ export async function createAppointment(data: {
   const availEnd = timeToMinutes(availability.endTime);
   if (startMin < availStart || endMin > availEnd) throw new Error('Fora do horário de atendimento');
 
-  const startOfDay = new Date(date);
-  startOfDay.setHours(0, 0, 0, 0);
-  const endOfDay = new Date(date);
-  endOfDay.setHours(23, 59, 59, 999);
+  const { startUtc: startOfDay, endUtc: endOfDay } = ymdToUtcRange(data.dateStr, tz);
 
   const blockedTimes = await prisma.blockedTime.findMany({
     where: {

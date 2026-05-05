@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { normalizePhone, sendWebPush } from '@/lib/push/server';
+import { safeTz } from '@/lib/datetime';
+import { DateTime } from 'luxon';
 
-function appointmentDateTime(dateOnly: Date, startTime: string) {
+function appointmentStartUtc(dateOnlyUtc: Date, startTime: string, tz: string) {
   const [h, m] = startTime.split(':').map(Number);
-  const d = new Date(dateOnly);
-  d.setHours(h || 0, m || 0, 0, 0);
-  return d;
+  // dateOnlyUtc é o início do dia (UTC) do dia local da empresa. Convertemos para o TZ, setamos o horário, e voltamos a UTC.
+  const base = DateTime.fromJSDate(dateOnlyUtc, { zone: 'utc' }).setZone(tz);
+  return base.set({ hour: h || 0, minute: m || 0, second: 0, millisecond: 0 }).toUTC().toJSDate();
 }
 
 export async function GET(req: Request) {
@@ -35,7 +37,7 @@ export async function GET(req: Request) {
     },
     include: {
       customer: true,
-      company: { select: { id: true, name: true, slug: true } },
+      company: { select: { id: true, name: true, slug: true, timezone: true } },
       professional: { select: { name: true } },
       service: { select: { name: true } },
     },
@@ -50,7 +52,8 @@ export async function GET(req: Request) {
 
   for (const appt of candidates) {
     scanned += 1;
-    const when = appointmentDateTime(appt.date, appt.startTime);
+    const tz = safeTz(appt.company.timezone);
+    const when = appointmentStartUtc(appt.date, appt.startTime, tz);
     if (when < targetStart || when > targetEnd) continue;
     eligible += 1;
 

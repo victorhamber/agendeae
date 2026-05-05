@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { DateTime } from 'luxon';
 import styles from './agenda.module.css';
 import { getAvailableTimeSlots } from '../../actions/availability';
 import { createAppointment } from '../../actions/booking';
@@ -23,25 +24,9 @@ type Professional = {
   ratingAverage: number | null;
 };
 
-// Helpers for dates
-const getNextDays = (numDays: number) => {
-  const dates = [];
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  for (let i = 0; i < numDays; i++) {
-    const d = new Date(today);
-    d.setDate(today.getDate() + i);
-    d.setHours(0, 0, 0, 0);
-    dates.push(d);
-  }
-  return dates;
-};
-
-function toYmdLocal(date: Date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
+function buildNextDaysYmd(numDays: number, tz: string) {
+  const start = DateTime.now().setZone(tz).startOf('day');
+  return Array.from({ length: numDays }, (_, i) => start.plus({ days: i }).toISODate()!);
 }
 
 const dayNames = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
@@ -52,6 +37,7 @@ export default function BookingFlow({
   professionals,
   companyId,
   companyWhatsapp,
+  companyTimezone,
   allowAnyProfessional = true,
   allowCancellation = true,
   maxAdvanceDays = 60,
@@ -60,13 +46,14 @@ export default function BookingFlow({
   professionals: Professional[];
   companyId: string;
   companyWhatsapp: string;
+  companyTimezone: string;
   allowAnyProfessional?: boolean;
   allowCancellation?: boolean;
   maxAdvanceDays?: number;
 }) {
   const [selectedProfessional, setSelectedProfessional] = useState<Professional | null>(null);
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
-  const [selectedDateObj, setSelectedDateObj] = useState<Date | null>(null);
+  const [selectedDateStr, setSelectedDateStr] = useState<string | null>(null); // YYYY-MM-DD no TZ da empresa
   const [selectedTime, setSelectedTime] = useState<string>('');
 
   const [step, setStep] = useState<'SERVICES' | 'PROFESSIONALS' | 'DATETIME'>('SERVICES');
@@ -88,9 +75,11 @@ export default function BookingFlow({
     total: string;
   } | null>(null);
 
-  // Datas expandidas até o limite permitido pela empresa
-  const [dates] = useState(() => getNextDays(maxAdvanceDays));
-  const [visibleMonth, setVisibleMonth] = useState(`${monthNames[dates[0].getMonth()]} ${dates[0].getFullYear()}`);
+  const tz = companyTimezone || 'America/Sao_Paulo';
+  // Datas expandidas até o limite permitido pela empresa (timezone da empresa, não do cliente)
+  const [dates] = useState(() => buildNextDaysYmd(maxAdvanceDays, tz));
+  const first = DateTime.fromISO(dates[0]!, { zone: tz });
+  const [visibleMonth, setVisibleMonth] = useState(`${monthNames[first.month - 1]} ${first.year}`);
 
   // Lógica de Scroll com Mouse (Arrastar)
   const sliderRef = useRef<HTMLDivElement>(null);
@@ -124,23 +113,22 @@ export default function BookingFlow({
     if (!sliderRef.current) return;
     const scrollPos = sliderRef.current.scrollLeft;
     const index = Math.min(Math.max(Math.floor(scrollPos / 72), 0), dates.length - 1);
-    const visibleDate = dates[index];
-    if (visibleDate) {
-      const newMonth = `${monthNames[visibleDate.getMonth()]} ${visibleDate.getFullYear()}`;
+    const visibleYmd = dates[index];
+    if (visibleYmd) {
+      const dt = DateTime.fromISO(visibleYmd, { zone: tz });
+      const newMonth = `${monthNames[dt.month - 1]} ${dt.year}`;
       if (visibleMonth !== newMonth) {
         setVisibleMonth(newMonth);
       }
     }
   };
 
-  const handleDateClick = (date: Date) => {
+  const handleDateClick = (ymd: string) => {
     if (isDragging.current) {
       isDragging.current = false;
       return;
     }
-    const normalized = new Date(date);
-    normalized.setHours(0, 0, 0, 0);
-    setSelectedDateObj(normalized);
+    setSelectedDateStr(ymd);
   };
 
   const totalDuration = selectedServices.reduce((acc, curr) => acc + curr.durationMinutes, 0);
@@ -164,13 +152,12 @@ export default function BookingFlow({
   // Horários: `companyId` vem das props (página resolveu pelo slug); `selectedProfessional` só existe
   // porque veio da lista `company.professionals`. O servidor recoloca `companyId` nas queries de conflito.
   useEffect(() => {
-    if (selectedProfessional && selectedDateObj && selectedServices.length > 0) {
+    if (selectedProfessional && selectedDateStr && selectedServices.length > 0) {
       const fetchTimes = async () => {
         setLoadingTimes(true);
         setAvailableTimes([]);
         try {
-          const dateStr = toYmdLocal(selectedDateObj);
-          const slots = await getAvailableTimeSlots(selectedProfessional.id, dateStr, totalDuration);
+          const slots = await getAvailableTimeSlots(selectedProfessional.id, selectedDateStr, totalDuration);
           setAvailableTimes(slots);
         } catch (error) {
           console.error(error);
@@ -184,16 +171,16 @@ export default function BookingFlow({
       setAvailableTimes([]);
       setSelectedTime('');
     }
-  }, [selectedProfessional, selectedDateObj, totalDuration, selectedServices.length]);
+  }, [selectedProfessional, selectedDateStr, totalDuration, selectedServices.length]);
 
   const handleBookNow = () => {
-    if (!selectedProfessional || selectedServices.length === 0 || !selectedDateObj || !selectedTime) return;
+    if (!selectedProfessional || selectedServices.length === 0 || !selectedDateStr || !selectedTime) return;
     setShowCheckout(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedProfessional || selectedServices.length === 0 || !selectedDateObj || !selectedTime) return;
+    if (!selectedProfessional || selectedServices.length === 0 || !selectedDateStr || !selectedTime) return;
 
     setIsSubmitting(true);
     try {
@@ -202,15 +189,16 @@ export default function BookingFlow({
         companyId,
         professionalId: selectedProfessional.id,
         serviceIds: selectedServices.map(s => s.id),
-        dateStr: toYmdLocal(selectedDateObj),
+        dateStr: selectedDateStr,
         startTime: selectedTime,
         customerName,
         customerWhatsapp,
       });
 
+      const dtConfirmed = DateTime.fromISO(selectedDateStr, { zone: tz });
       setConfirmedData({
         services: selectedServices.map(s => s.name).join(' + '),
-        date: selectedDateObj.toLocaleDateString('pt-BR', {
+        date: dtConfirmed.toJSDate().toLocaleDateString('pt-BR', {
           weekday: 'long',
           day: 'numeric',
           month: 'long',
@@ -302,7 +290,11 @@ export default function BookingFlow({
           <div className={styles.summaryGrid2}>
             <div>
               <p className={styles.fieldLabelMutedMd}>Data</p>
-              <p className={styles.fieldValueStrong}>{selectedDateObj?.toLocaleDateString()}</p>
+              <p className={styles.fieldValueStrong}>
+                {selectedDateStr
+                  ? DateTime.fromISO(selectedDateStr, { zone: tz }).toJSDate().toLocaleDateString('pt-BR')
+                  : '—'}
+              </p>
             </div>
             <div>
               <p className={styles.fieldLabelMutedMd}>Hora</p>
@@ -519,30 +511,31 @@ export default function BookingFlow({
             onMouseMove={onMouseMove}
             onScroll={handleScroll}
           >
-            {dates.map(date => {
-              const isSelected = selectedDateObj?.getTime() === date.getTime();
+            {dates.map(ymd => {
+              const dt = DateTime.fromISO(ymd, { zone: tz });
+              const isSelected = selectedDateStr === ymd;
               return (
                 <div
-                  key={toYmdLocal(date)}
+                  key={ymd}
                   className={`${styles.dateCard} ${isSelected ? styles.selected : ''} ${styles.dateCardNoSelect}`}
                   role="button"
                   tabIndex={0}
-                  onClick={() => handleDateClick(date)}
+                  onClick={() => handleDateClick(ymd)}
                   onKeyDown={e => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
-                      handleDateClick(date);
+                      handleDateClick(ymd);
                     }
                   }}
                 >
-                  <span className={styles.dayNum}>{date.getDate()}</span>
-                  <span className={styles.dayName}>{dayNames[date.getDay()]}</span>
+                  <span className={styles.dayNum}>{dt.day}</span>
+                  <span className={styles.dayName}>{dayNames[dt.weekday % 7]}</span>
                 </div>
               );
             })}
           </div>
 
-          {selectedDateObj && (
+          {selectedDateStr && (
             <div className={styles.timeSection}>
               {loadingTimes ? (
                 <p className={styles.loadingMuted}>Buscando horários...</p>
@@ -565,7 +558,7 @@ export default function BookingFlow({
             </div>
           )}
 
-          {selectedDateObj && selectedTime && (
+          {selectedDateStr && selectedTime && (
             <div className={styles.stickyFooter}>
               <button type="button" className={styles.bookNowBtn} onClick={handleBookNow}>
                 AGENDAR AGORA • R$ {totalPrice.toFixed(2).replace('.', ',')}

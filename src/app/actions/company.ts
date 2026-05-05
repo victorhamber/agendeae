@@ -9,6 +9,7 @@ export async function updateCompanyInfo(data: {
   description: string;
   slug: string;
   primaryColor: string;
+  timezone?: string;
   logoUrl?: string;
   coverUrl?: string;
   whatsapp?: string;
@@ -42,6 +43,7 @@ export async function updateCompanyInfo(data: {
       description: data.description,
       slug: data.slug,
       primaryColor: data.primaryColor,
+      timezone: data.timezone,
       logoUrl: data.logoUrl,
       coverUrl: data.coverUrl,
       whatsapp: data.whatsapp,

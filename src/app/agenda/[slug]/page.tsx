@@ -93,7 +93,7 @@ export default async function AgendaPage({ params }: { params: Promise<{ slug: s
               )}
             </div>
 
-            <InstallAppButton />
+            <InstallAppButton companyName={company.name} />
           </div>
 
           {/*

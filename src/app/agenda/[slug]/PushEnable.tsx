@@ -28,6 +28,12 @@ export default function PushEnable({
     if (!canUse) return;
     setStatus('working');
     try {
+      const keyRes = await fetch('/api/push/public-key');
+      const keyJson = (await keyRes.json()) as { publicKey?: string; error?: string };
+      if (!keyRes.ok || !keyJson.publicKey) {
+        throw new Error(keyJson.error || 'Servidor sem configuração de notificações (VAPID).');
+      }
+
       const perm = await Notification.requestPermission();
       if (perm !== 'granted') {
         setStatus('denied');
@@ -35,9 +41,6 @@ export default function PushEnable({
       }
 
       const reg = await navigator.serviceWorker.register(`/${slug}/sw.js`);
-      const keyRes = await fetch('/api/push/public-key');
-      const keyJson = (await keyRes.json()) as { publicKey?: string };
-      if (!keyJson.publicKey) throw new Error('Chave pública ausente');
 
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
@@ -71,7 +74,12 @@ export default function PushEnable({
         {status === 'ok' ? 'Lembretes ativados' : status === 'working' ? 'Ativando...' : 'Ativar lembrete por notificação'}
       </button>
       {status === 'denied' && <p className={styles.pushEnableHint}>Permissão negada no navegador. Você pode ativar nas configurações do site.</p>}
-      {status === 'error' && <p className={styles.pushEnableHint}>Não foi possível ativar agora. Tente novamente.</p>}
+      {status === 'error' && (
+        <p className={styles.pushEnableHint}>
+          Não foi possível ativar os lembretes agora. Seus dados de agendamento continuam válidos; tente de novo mais
+          tarde ou use o WhatsApp para lembrar.
+        </p>
+      )}
     </div>
   );
 }

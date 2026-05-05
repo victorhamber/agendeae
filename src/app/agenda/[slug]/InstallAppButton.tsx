@@ -13,9 +13,19 @@ function isIos() {
   return /iphone|ipad|ipod/i.test(navigator.userAgent);
 }
 
-export default function InstallAppButton() {
+function isStandalone() {
+  if (typeof window === 'undefined') return false;
+  return window.matchMedia('(display-mode: standalone)').matches || (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+}
+
+export default function InstallAppButton({ companyName }: { companyName?: string }) {
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
+  const [alreadyInstalled, setAlreadyInstalled] = useState(false);
   const ios = useMemo(() => isIos(), []);
+
+  useEffect(() => {
+    setAlreadyInstalled(isStandalone());
+  }, []);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -33,7 +43,9 @@ export default function InstallAppButton() {
     setDeferred(null);
   };
 
-  if (!deferred && !ios) return null;
+  if (alreadyInstalled) return null;
+
+  const label = companyName?.trim() || 'esta agenda';
 
   return (
     <div className={styles.installWrap}>
@@ -42,11 +54,16 @@ export default function InstallAppButton() {
           Baixar app
         </button>
       ) : null}
-      {!deferred && ios ? (
+      {ios ? (
         <p className={styles.installHint}>
           Para instalar: toque em <strong>Compartilhar</strong> e depois em <strong>Adicionar à Tela de Início</strong>.
         </p>
-      ) : null}
+      ) : (
+        <p className={styles.installHint}>
+          No <strong>Chrome</strong>, use o ícone de <strong>instalar</strong> na barra de endereços ou o menu{' '}
+          <strong>⋮ → Instalar {label}…</strong> (o navegador nem sempre mostra o botão aqui na página).
+        </p>
+      )}
     </div>
   );
 }

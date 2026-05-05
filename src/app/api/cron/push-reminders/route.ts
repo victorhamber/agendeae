@@ -23,17 +23,16 @@ export async function GET(req: Request) {
   const targetStart = new Date(now.getTime() + 20 * 60 * 1000 - 60 * 1000);
   const targetEnd = new Date(now.getTime() + 20 * 60 * 1000 + 60 * 1000);
 
-  // Busca "candidatos" (janela pequena + limita a hoje/amanhã para evitar varredura grande)
-  const dayStart = new Date(now);
-  dayStart.setHours(0, 0, 0, 0);
-  const dayEnd = new Date(now);
-  dayEnd.setDate(dayEnd.getDate() + 1);
-  dayEnd.setHours(23, 59, 59, 999);
+  // `appointment.date` é o início do dia (UTC) conforme o fuso da empresa — não use meia-noite do servidor.
+  // Janela em dias UTC (-1 .. +2) cobre virada de dia UTC vs. Brasil e mantém a consulta pequena.
+  const utcMidnight = DateTime.fromJSDate(now, { zone: 'utc' }).startOf('day');
+  const rangeStart = utcMidnight.minus({ days: 1 }).toJSDate();
+  const rangeEnd = utcMidnight.plus({ days: 2 }).endOf('day').toJSDate();
 
   const candidates = await prisma.appointment.findMany({
     where: {
       status: { in: ['CONFIRMED'] },
-      date: { gte: dayStart, lte: dayEnd },
+      date: { gte: rangeStart, lte: rangeEnd },
     },
     include: {
       customer: true,
@@ -81,13 +80,17 @@ export async function GET(req: Request) {
       continue;
     }
 
+    const base = (process.env.NEXT_PUBLIC_APP_URL ?? '').replace(/\/$/, '');
+    const path = `/${appt.company.slug}/meus-agendamentos`;
+    const openUrl = base ? `${base}${path}` : path;
+
     try {
       await sendWebPush(
         { endpoint: subscription.endpoint, keys: { p256dh: subscription.p256dh, auth: subscription.auth } },
         {
           title: `Falta 20 minutos para seu atendimento`,
           body: `${appt.customer.name}, seu horário é às ${appt.startTime} com ${appt.professional.name}.`,
-          url: `/agenda/${appt.company.slug}/meus-agendamentos`,
+          url: openUrl,
         }
       );
 

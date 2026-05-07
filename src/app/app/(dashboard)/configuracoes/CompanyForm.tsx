@@ -19,6 +19,7 @@ function ImageUploadField({
   currentUrl: string; 
   onUrlChange: (url: string) => void;
   aspectLabel: string;
+  accept?: string;
 }) {
   const [preview, setPreview] = useState(currentUrl);
   const [fileDimensions, setFileDimensions] = useState<string>('');
@@ -112,7 +113,7 @@ function ImageUploadField({
             </button>
           )}
         </div>
-        <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" aria-label={`Selecionar imagem: ${label}`} onChange={handleUpload} className={styles.hiddenInput} />
+        <input ref={fileRef} type="file" accept={accept || "image/jpeg,image/png,image/webp"} aria-label={`Selecionar imagem: ${label}`} onChange={handleUpload} className={styles.hiddenInput} />
       </div>
     </div>
   );
@@ -239,12 +240,13 @@ export default function CompanyForm({ company }: { company: Company }) {
       <div className={styles.companyCol}>
         <div className={`grid-2-col ${styles.companyGridGap}`}>
           <ImageUploadField 
-            label="Logo" 
-            hint="Recomendado: Quadrado 400×400px. Formatos: JPG, PNG ou WebP." 
-            exampleDimensions="400×400px"
+            label="Logo (obrigatório PNG para o App)" 
+            hint="Obrigatório ser PNG transparente para instalar o App." 
+            exampleDimensions="400×400px (Formato: PNG)"
             currentUrl={logoUrl} 
             onUrlChange={setLogoUrl}
             aspectLabel="logo"
+            accept="image/png"
           />
           <ImageUploadField 
             label="Capa (Fundo)" 

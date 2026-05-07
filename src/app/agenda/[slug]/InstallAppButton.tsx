@@ -51,19 +51,9 @@ export default function InstallAppButton({ companyName }: { companyName?: string
     <div className={styles.installWrap}>
       {deferred ? (
         <button type="button" className={styles.installBtn} onClick={onInstall}>
-          Baixar app
+          ⬇️ Baixar App da Empresa
         </button>
       ) : null}
-      {ios ? (
-        <p className={styles.installHint}>
-          Para instalar: toque em <strong>Compartilhar</strong> e depois em <strong>Adicionar à Tela de Início</strong>.
-        </p>
-      ) : (
-        <p className={styles.installHint}>
-          No <strong>Chrome</strong>, use o ícone de <strong>instalar</strong> na barra de endereços ou o menu{' '}
-          <strong>⋮ → Instalar {label}…</strong> (o navegador nem sempre mostra o botão aqui na página).
-        </p>
-      )}
     </div>
   );
 }

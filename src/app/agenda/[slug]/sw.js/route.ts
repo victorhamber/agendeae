@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   const js = `
+self.addEventListener('fetch', (event) => {
+  // OBRIGATÓRIO ter fetch para o Chrome liberar a instalação do PWA
+});
+
 self.addEventListener('push', (event) => {
   let data = {};
   try { data = event.data ? event.data.json() : {}; } catch { data = {}; }

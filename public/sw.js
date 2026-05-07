@@ -1,3 +1,7 @@
+self.addEventListener('fetch', (event) => {
+  // Pass-through fetch handler for PWA installability criteria
+});
+
 self.addEventListener('push', (event) => {
   let data = {};
   try {

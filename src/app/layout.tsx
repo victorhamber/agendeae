@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "AGENDEAE | Agendamento Online Automático",
   description: "A agenda automática para negócios que querem parar de depender do WhatsApp para marcar horários.",
-  manifest: "/manifest.webmanifest",
+  manifest: "/manifest.json",
 };
 
 export const viewport = {

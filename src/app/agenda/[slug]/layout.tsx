@@ -25,7 +25,7 @@ export async function generateMetadata({
 
   // Manifest + ícones por empresa (melhora elegibilidade do "Instalar app")
   return {
-    manifest: `/${slug}/manifest.webmanifest`,
+    manifest: `/${slug}/manifest.json`,
     title,
     description,
     icons: {

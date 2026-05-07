@@ -11,7 +11,8 @@ function ImageUploadField({
   exampleDimensions,
   currentUrl, 
   onUrlChange,
-  aspectLabel
+  aspectLabel,
+  accept
 }: { 
   label: string; 
   hint: string; 

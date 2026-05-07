@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { Appointment, Customer, Professional, Service } from '@prisma/client';
+import CustomerNotesModal from './CustomerNotesModal';
 
 type CustomerAppointmentRow = Appointment & { service: Service; professional: Professional };
 type CustomerRow = Omit<Customer, 'tags'> & {
@@ -59,6 +60,7 @@ export default function ClientTable({ customerData }: { customerData: CustomerRo
               <th style={{ padding: '1rem', textAlign: 'center', fontWeight: 500, color: 'var(--muted)' }}>Cancelamentos</th>
               <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 500, color: 'var(--muted)' }}>Total Gasto</th>
               <th style={{ padding: '1rem', textAlign: 'left', fontWeight: 500, color: 'var(--muted)' }}>Última Visita</th>
+              <th style={{ padding: '1rem', textAlign: 'right', fontWeight: 500, color: 'var(--muted)' }}>Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -111,6 +113,13 @@ export default function ClientTable({ customerData }: { customerData: CustomerRo
                       ? `${new Date(customer.lastVisit.date).toLocaleDateString('pt-BR')} às ${customer.lastVisit.startTime}`
                       : '—'
                     }
+                  </td>
+                  <td style={{ padding: '1rem', textAlign: 'right' }}>
+                    <CustomerNotesModal 
+                      customerId={customer.id} 
+                      customerName={customer.name} 
+                      initialNotes={customer.notes || ''} 
+                    />
                   </td>
                 </tr>
               ))

@@ -26,7 +26,7 @@ export default async function Home() {
   // Mantemos a raiz como "home" pública básica (por enquanto).
   return (
     <main className="pagePad">
-      <h1>AGENDAAE</h1>
+      <h1>AGENDEAE</h1>
       <p>Acesse pelo link da sua empresa: https://agendeae.com.br/seuslug</p>
     </main>
   );

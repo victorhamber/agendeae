@@ -2,6 +2,9 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 function isPublicFile(pathname: string) {
+  // Arquivos PWA da raiz (Admin / Super Admin) não devem ser reescritos.
+  if (pathname === '/manifest.webmanifest' || pathname === '/sw.js') return true;
+
   // Esses arquivos fazem parte do PWA por empresa e precisam passar pelo rewrite
   // (ex.: /{slug}/manifest.webmanifest → /agenda/{slug}/manifest.webmanifest).
   if (pathname.endsWith('/manifest.webmanifest') || pathname.endsWith('/sw.js')) return false;

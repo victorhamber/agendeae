@@ -10,7 +10,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ slug: st
     select: { name: true, primaryColor: true, logoUrl: true },
   });
 
-  const name = company?.name ?? 'AGENDAAE';
+  const name = company?.name ?? 'AGENDEAE';
   const themeColor = company?.primaryColor ?? '#4f46e5';
   const origin = siteOriginFromRequest(req);
   const manifest = buildAgendaManifestJson({

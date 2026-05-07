@@ -40,6 +40,13 @@ export default function AppSidebar({
     return null;
   }
 
+  const isLinkActive = (href: string) => {
+    // pathname comes as /app/... from Next.js because of the rewrite
+    const normalizedHref = href === '/' ? '/app' : `/app${href}`;
+    if (href === '/') return pathname === '/app';
+    return pathname.startsWith(normalizedHref);
+  };
+
   const navLinks = [
     ...(role === 'COMPANY_ADMIN' ? [{ href: '/', label: 'Dashboard' }] : []),
     { href: '/agenda', label: 'Agenda' },
@@ -88,7 +95,7 @@ export default function AppSidebar({
         
         <nav className={styles.nav}>
           {navLinks.map(link => {
-            const isActive = pathname === link.href;
+            const isActive = isLinkActive(link.href);
             return (
               <Link 
                 key={link.href} 

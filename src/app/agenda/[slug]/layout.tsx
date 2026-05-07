@@ -1,5 +1,5 @@
 import styles from './agenda.module.css';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { prisma } from '@/lib/prisma';
 import { resolveAgendaIconUrl, siteOriginFromHeaders } from '@/lib/pwaAgenda';
 
@@ -15,7 +15,7 @@ export async function generateMetadata({
     select: { name: true, description: true, primaryColor: true, logoUrl: true },
   });
 
-  const title = company?.name ? `${company.name} | Agendamento` : 'AGENDAAE | Agendamento';
+  const title = company?.name ? `${company.name} | Agendamento` : 'AGENDEAE | Agendamento';
   const description =
     company?.description?.trim() ||
     'Agende seu horário em poucos cliques. Escolha o serviço, o profissional e o melhor horário.';
@@ -28,11 +28,26 @@ export async function generateMetadata({
     manifest: `/${slug}/manifest.webmanifest`,
     title,
     description,
-    themeColor: company?.primaryColor || '#4f46e5',
     icons: {
       icon: [{ url: iconUrl }],
       apple: [{ url: iconUrl }],
     },
+  };
+}
+
+export async function generateViewport({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Viewport> {
+  const { slug } = await params;
+  const company = await prisma.company.findUnique({
+    where: { slug },
+    select: { primaryColor: true },
+  });
+
+  return {
+    themeColor: company?.primaryColor || '#4f46e5',
   };
 }
 

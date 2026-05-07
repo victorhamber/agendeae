@@ -8,11 +8,16 @@ export default async function AppDashboard() {
   const session = await requireCompanySession();
   
   if (session.role === 'PROFESSIONAL') {
-    redirect('/app/agenda');
+    redirect('/agenda');
   }
 
   const company = await prisma.company.findUnique({ where: { id: session.companyId } });
   if (!company) return <div>Empresa não encontrada.</div>;
+
+  const [servicesCount, professionalsCount] = await Promise.all([
+    prisma.service.count({ where: { companyId: session.companyId } }),
+    prisma.professional.count({ where: { companyId: session.companyId } })
+  ]);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -152,6 +157,22 @@ export default async function AppDashboard() {
         </div>
       </header>
       
+      {/* Onboarding Banner */}
+      {(servicesCount === 0 || professionalsCount === 0) && (
+        <div className="glass" style={{ padding: '2rem', borderRadius: 'var(--radius)', marginBottom: '2rem', border: '2px dashed var(--primary)', backgroundColor: 'rgba(79, 70, 229, 0.05)' }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '0.5rem', color: 'var(--primary)' }}>👋 Bem-vindo ao AGENDEAE! Vamos preparar sua agenda?</h2>
+          <p style={{ color: 'var(--muted)', marginBottom: '1.5rem' }}>Para que seus clientes possam agendar, você precisa configurar o básico.</p>
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+            <Link href="/profissionais" style={{ padding: '0.5rem 1rem', borderRadius: 'var(--radius)', backgroundColor: professionalsCount > 0 ? 'var(--success)' : 'var(--primary)', color: '#fff', textDecoration: 'none', fontWeight: 500 }}>
+              {professionalsCount > 0 ? '✓ Profissional Adicionado' : '1. Adicionar Profissional'}
+            </Link>
+            <Link href="/servicos" style={{ padding: '0.5rem 1rem', borderRadius: 'var(--radius)', backgroundColor: servicesCount > 0 ? 'var(--success)' : (professionalsCount > 0 ? 'var(--primary)' : 'var(--muted)'), color: '#fff', textDecoration: 'none', fontWeight: 500, pointerEvents: professionalsCount > 0 ? 'auto' : 'none', opacity: professionalsCount > 0 ? 1 : 0.5 }}>
+              {servicesCount > 0 ? '✓ Serviço Adicionado' : '2. Adicionar Serviço'}
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* Cards principais */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
         <div className="glass" style={{ padding: '1.25rem', borderRadius: 'var(--radius)' }}>

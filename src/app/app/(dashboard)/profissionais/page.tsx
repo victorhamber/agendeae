@@ -67,7 +67,7 @@ export default async function ProfissionaisPage() {
                     </td>
                     <td style={{ padding: '1rem', textAlign: 'right', display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', alignItems: 'center' }}>
                       <ProfessionalForm professional={professional} />
-                      <Link href={`/app/profissionais/${professional.id}/horarios`} style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 500, fontSize: '0.875rem' }}>
+                      <Link href={`/profissionais/${professional.id}/horarios`} style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 500, fontSize: '0.875rem' }}>
                         Horários
                       </Link>
                       <DeleteProfessionalButton professionalId={professional.id} />

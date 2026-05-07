@@ -5,7 +5,7 @@ import path from 'path';
 export const runtime = 'nodejs';
 
 function getUploadsDir() {
-  return process.env.UPLOADS_DIR || path.join(process.cwd(), 'public', 'uploads');
+  return process.env.UPLOADS_DIR || path.join(/* turbopackIgnore: true */ process.cwd(), 'public', 'uploads');
 }
 
 function contentTypeFor(filename: string) {

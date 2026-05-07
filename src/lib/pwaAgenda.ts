@@ -54,6 +54,8 @@ export function buildAgendaManifestJson(opts: {
   const iconType = guessIconMime(iconUrl);
   const typeField = iconType ? { type: iconType } : {};
 
+  const fallbackSvg = `${origin}/next.svg`;
+
   return {
     id: startUrl,
     name,
@@ -65,6 +67,8 @@ export function buildAgendaManifestJson(opts: {
     theme_color: themeColor,
     prefer_related_applications: false,
     icons: [
+      { src: fallbackSvg, sizes: '192x192 512x512 any', type: 'image/svg+xml', purpose: 'any' },
+      { src: fallbackSvg, sizes: '192x192 512x512 any', type: 'image/svg+xml', purpose: 'maskable' },
       { src: iconUrl, sizes: '192x192', purpose: 'any', ...typeField },
       { src: iconUrl, sizes: '512x512', purpose: 'any', ...typeField },
       { src: iconUrl, sizes: '512x512', purpose: 'maskable', ...typeField },
